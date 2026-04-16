@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrada de Metálicos 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#161922;--bg3:#1d2230;--card:#1a1f2e;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#f59e0b;--accent2:#fb923c;--blue:#60a5fa;--teal:#34d399;--pink:#f472b6;--purple:#a78bfa;--coral:#fb7185;--text:#f1f5f9;--muted:#94a3b8;--faint:#475569}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+/* HEADER */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:#0f1117;flex-shrink:0}
+.header-title{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.2px}
+.header-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.badge{background:rgba(245,158,11,0.14);color:var(--accent);border:1px solid rgba(245,158,11,0.28);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500}
+/* TABS */
+.tabs-wrap{padding:16px 28px 0;background:var(--bg2);border-bottom:1px solid var(--border)}
+.tabs{display:flex;gap:2px}
+.tab{padding:9px 22px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .18s;margin-bottom:-1px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+/* MAIN */
+.main{padding:20px 28px 40px;max-width:1440px;margin:0 auto}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:18px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:13px 15px;position:relative;overflow:hidden;transition:border-color .2s}
+.kpi-card:hover{border-color:var(--border2)}
+.kpi-card.highlight{border-color:rgba(245,158,11,0.3)}
+.kpi-card.highlight::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.kpi-label{font-size:9px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.9px;margin-bottom:7px}
+.kpi-val{font-size:20px;font-weight:600;color:var(--text);letter-spacing:-0.5px;font-family:'IBM Plex Mono',monospace;line-height:1.1}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.kpi-diff{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;margin-top:5px;font-weight:500}
+.kpi-diff.neg{background:rgba(251,113,133,0.15);color:var(--coral)}
+.kpi-diff.pos{background:rgba(52,211,153,0.15);color:var(--teal)}
+/* GRID */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:15px 17px;transition:border-color .2s}
+.chart-card:hover{border-color:var(--border2)}
+.chart-card.full{grid-column:1/-1}
+.chart-card.third{grid-column:span 1}
+.chart-title{font-size:10px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.8px;margin-bottom:13px;display:flex;align-items:center;gap:6px}
+.chart-title::before{content:'';display:inline-block;width:3px;height:11px;background:var(--accent);border-radius:2px;flex-shrink:0}
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.ldot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--faint);border-radius:3px}
+/* FOOTER */
+.footer{text-align:center;padding:18px;font-size:11px;color:var(--faint);border-top:1px solid var(--border);margin-top:16px}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:800px){.kpi-grid{grid-template-columns:repeat(2,1fr)};.charts-grid{grid-template-columns:1fr};.chart-card.full{grid-column:1};.main{padding:14px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="logo-icon">M</div>
+    <div>
+      <div class="header-title">Entrada de Metálicos 2026</div>
+      <div class="header-sub">Peso líquido s/ impureza · Análise mensal de recebimento</div>
+    </div>
+  </div>
+  <div class="badge">Jan – Abr 2026</div>
+</div>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-m="JAN">Janeiro</button>
+    <button class="tab" data-m="FEV">Fevereiro</button>
+    <button class="tab" data-m="MAR">Março</button>
+    <button class="tab" data-m="ABR">Abril <span style="font-size:10px;opacity:.55">(parcial)</span></button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="kpi-grid" id="kpis"></div>
+  <div class="charts-grid">
+
+    <!-- Diário -->
+    <div class="chart-card full">
+      <div class="chart-title">Volume diário recebido — toneladas (peso líquido s/ impureza)</div>
+      <div style="position:relative;height:180px"><canvas id="c-dia" role="img" aria-label="Volume diário"></canvas></div>
+    </div>
+
+    <!-- Material + UF lado a lado -->
+    <div class="chart-card">
+      <div class="chart-title">Volume por material (ton)</div>
+      <div id="wrap-mat" style="position:relative"><canvas id="c-mat" role="img" aria-label="Volume por material"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Volume por estado (ton)</div>
+      <div id="wrap-uf" style="position:relative"><canvas id="c-uf" role="img" aria-label="Volume por estado"></canvas></div>
+    </div>
+
+    <!-- Preço material + Preço região -->
+    <div class="chart-card">
+      <div class="chart-title">Preço médio por material — R$/ton s/ ICMS</div>
+      <div id="wrap-prm" style="position:relative"><canvas id="c-prm" role="img" aria-label="Preço por material"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Preço médio por região — R$/ton s/ ICMS</div>
+      <div style="position:relative;height:220px"><canvas id="c-reg" role="img" aria-label="Preço por região"></canvas></div>
+    </div>
+
+    <!-- Fornecedores -->
+    <div class="chart-card full">
+      <div class="chart-title">Top 10 fornecedores — volume entregue (ton)</div>
+      <div id="wrap-forn" style="position:relative"><canvas id="c-forn" role="img" aria-label="Top fornecedores"></canvas></div>
+    </div>
+
+    <!-- Impureza + Frete -->
+    <div class="chart-card">
+      <div class="chart-title">Impureza média por material (%)</div>
+      <div id="wrap-imp" style="position:relative"><canvas id="c-imp" role="img" aria-label="Impureza por material"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Modalidade de frete</div>
+      <div id="legend-frete" class="legend" style="justify-content:center;margin-top:4px"></div>
+      <div style="position:relative;height:170px"><canvas id="c-frt" role="img" aria-label="CIF vs FOB"></canvas></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">Dashboard de Entrada de Metálicos · 2026 · Dados atualizados até 15/Abr</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<script>
+Chart.register(ChartDataLabels);
+
+const DATA = {"JAN":{"qtd_dia":{"2":655.61,"3":131.8,"4":396.13,"5":980.27,"6":1266.02,"7":2135.69,"8":1983.22,"9":1917.95,"10":1706.94,"11":1429.22,"12":1763.0,"13":1675.61,"14":2320.86,"15":1890.59,"16":2199.27,"17":1495.31,"18":1803.19,"19":1667.76,"20":2020.57,"21":1823.77,"22":1963.34,"23":2023.05,"24":1769.03,"25":1699.07,"26":1333.46,"27":1554.4,"28":1778.86,"29":1769.43,"30":1807.88,"31":1264.37},"qtd_material":{"MISM":25806.4,"TESO":8103.85,"OXIC":3397.08,"PAES":3193.88,"CAVA":2236.67,"ESTS":2161.62,"GRAU":1141.04,"PACH":688.63,"SGUA":515.24,"CAFO":467.53,"PACP":264.51,"SHRE":133.54,"MISS":106.46,"SFEB":9.22},"qtd_uf":{"MG":20454.04,"SP":9944.05,"RJ":4540.06,"GO":3250.4,"AM":2929.87,"BA":2170.66,"SE":1713.79,"TO":1577.89,"ES":814.13,"PR":497.95,"RN":238.72,"PE":94.11},"preco_material":{"PACH":1638.62,"PAES":1579.08,"ESTS":1435.92,"SGUA":1423.47,"MISM":1400.5,"OXIC":1382.82,"SHRE":1340.13,"PACP":1270.31,"GRAU":1201.55,"CAFO":1191.53,"TESO":1184.28,"CAVA":1137.83,"MISS":885.03},"preco_medio_semicms":1344.4,"preco_medio_comicms":1459.51,"preco_regiao":{"Norte":1654.5,"Centro-Oeste":1460.12,"Nordeste":1344.71,"Sudeste":1303.87,"Sul":1114.08},"top_fornecedores":{"SIMEC ITAUNA":10975.14,"SUCALOG COM. RECICL. METAIS":5047.42,"LHL IND. COM. SUCATAS":3166.96,"COMETAIS IND. COM. METAIS":2823.0,"RFR INDY RECYCLING":2127.37,"BRR RECICL. COLETA":1653.71,"CARVALHO FERNANDES":1458.14,"RFR COM. RECICL. RESIDUOS":1365.16,"SOF COM. RECICL. SUCATAS":1220.27,"TRUFER COM. SUCATAS":1166.58},"imp_material":{"SGUA":9.56,"MISS":7.97,"TESO":6.31,"CAVA":3.03,"MISM":2.45,"PACH":1.89,"CAFO":1.68,"PACP":1.48,"SHRE":1.34,"OXIC":1.29,"GRAU":1.04,"PAES":0.18,"ESTS":0.14},"frete":{"F":976,"C":773},"total_mes":48225.67,"total_tickets":1735,"avg_impureza":2.96,"media_diaria":1607.52,"previsao_proximo_dia":1634.99,"ritmo_projecao":48225.67,"ultimo_dia":31,"total_dias_mes":31,"n_dias_com_dados":30},"FEV":{"qtd_dia":{"1":589.29,"2":1402.32,"3":2019.87,"4":2076.9,"5":1833.34,"6":1671.54,"7":1467.22,"8":672.91,"9":1091.35,"10":1359.31,"11":2169.88,"12":1372.27,"13":1542.89,"14":1116.73,"15":1086.22,"16":854.89,"17":602.74,"18":1368.27,"19":1823.61,"20":1826.19,"21":1447.63,"22":1095.53,"23":1241.89,"24":1706.61,"25":1881.05,"26":2214.05,"27":2065.65,"28":1146.78},"qtd_material":{"MISM":21697.24,"TESO":6850.54,"OXIC":3486.17,"CAVA":2127.35,"ESTS":1666.05,"PAES":1537.74,"GRAU":1346.14,"CAFO":512.3,"PACH":436.38,"PACP":371.15,"SGUA":294.85,"SHRE":258.26,"MISS":103.38,"SFEB":30.38,"FOFO":17.55,"SAFC":11.31},"qtd_uf":{"MG":15416.35,"SP":11408.35,"RJ":5073.09,"BA":2519.83,"TO":2098.98,"ES":1341.5,"GO":1183.6,"SE":752.16,"PE":465.14,"PR":197.45,"AM":187.55,"RN":102.93},"preco_material":{"PAES":1495.37,"ESTS":1444.52,"SHRE":1430.34,"MISM":1423.47,"SGUA":1423.37,"OXIC":1411.76,"GRAU":1269.6,"PACP":1257.44,"TESO":1233.21,"CAFO":1202.72,"CAVA":1149.48,"PACH":1102.83,"MISS":799.44},"preco_medio_semicms":1352.44,"preco_medio_comicms":1459.02,"preco_regiao":{"Centro-Oeste":1517.61,"Norte":1509.6,"Nordeste":1411.36,"Sudeste":1335.66,"Sul":1187.65},"top_fornecedores":{"SIMEC ITAUNA":8998.06,"SUCALOG COM. RECICL. METAIS":5640.96,"ZULMIRA CARREIRA FILHOS":2042.07,"RFR INDY RECYCLING":1753.34,"RFR COM. RECICL. RESIDUOS":1700.15,"BRR RECICL. COLETA":1419.82,"QUALY COM. TRANSP. SUCATAS":1226.21,"METALPRONTO IND. COM.":1206.6,"LHL IND. COM. SUCATAS":1183.6,"VALE SA":1100.03},"imp_material":{"SGUA":11.38,"MISS":7.95,"PACH":6.11,"TESO":6.1,"MISM":2.88,"CAVA":2.32,"PACP":1.92,"CAFO":1.81,"OXIC":1.7,"SHRE":1.63,"GRAU":0.52,"ESTS":0.29,"PAES":0.04},"frete":{"F":871,"C":652},"total_mes":40746.93,"total_tickets":1491,"avg_impureza":3.14,"media_diaria":1455.25,"previsao_proximo_dia":1802.83,"ritmo_projecao":40746.93,"ultimo_dia":28,"total_dias_mes":28,"n_dias_com_dados":28},"MAR":{"qtd_dia":{"1":926.83,"2":1269.25,"3":1602.23,"4":2200.45,"5":2126.43,"6":2023.28,"7":1437.61,"8":886.04,"9":1407.99,"10":1594.65,"11":2048.65,"12":1581.46,"13":1669.98,"14":657.33,"15":658.89,"16":1038.94,"17":1933.31,"18":2206.03,"19":1543.79,"20":1421.35,"21":1103.16,"22":669.76,"23":1831.57,"24":2082.89,"25":1700.76,"26":1865.23,"27":2605.33,"28":1528.87,"29":874.42,"30":1236.09,"31":1402.72},"qtd_material":{"MISM":22021.3,"TESO":6679.71,"PACH":4216.32,"OXIC":4026.06,"CAVA":3000.77,"ESTS":1726.51,"GRAU":1590.77,"PAES":1568.51,"CAFO":861.44,"SGUA":680.32,"PACP":492.23,"MISS":171.89,"SFEB":46.87,"FOFO":36.11,"SAFC":16.48},"qtd_uf":{"MG":16764.2,"SP":11566.15,"RJ":7656.43,"BA":3120.14,"TO":2127.17,"ES":1786.68,"GO":1714.82,"SE":1673.75,"RN":277.19,"PE":234.78,"PR":213.98},"preco_material":{"FOFO":1649.82,"PAES":1648.38,"MISM":1517.98,"SGUA":1505.08,"ESTS":1504.07,"OXIC":1487.6,"TESO":1323.55,"CAFO":1305.76,"GRAU":1292.63,"PACP":1287.14,"PACH":1248.9,"CAVA":1190.2,"MISS":1080.85},"preco_medio_semicms":1418.24,"preco_medio_comicms":1529.58,"preco_regiao":{"Centro-Oeste":1569.04,"Norte":1567.21,"Nordeste":1477.99,"Sudeste":1401.69,"Sul":1240.17},"top_fornecedores":{"SIMEC ITAUNA":9868.41,"SUCALOG COM. RECICL. METAIS":4409.72,"ZULMIRA CARREIRA FILHOS":2182.56,"BRR RECICL. COLETA":2055.43,"RFR INDY RECYCLING":1962.0,"RFR COM. RECICL. RESIDUOS":1772.23,"LHL IND. COM. SUCATAS":1544.89,"METALPRONTO IND. COM.":1473.35,"QUALY COM. TRANSP. SUCATAS":1307.53,"A B DA SILVA SUCATAS":1215.41},"imp_material":{"SGUA":9.91,"PACH":6.27,"TESO":5.86,"MISS":5.53,"MISM":3.1,"CAVA":2.4,"PACP":2.07,"OXIC":1.78,"CAFO":1.46,"ESTS":0.74,"GRAU":0.57,"PAES":0.19},"frete":{"F":1035,"C":773},"total_mes":47135.29,"total_tickets":1773,"avg_impureza":3.37,"media_diaria":1520.49,"previsao_proximo_dia":1529.49,"ritmo_projecao":47135.29,"ultimo_dia":31,"total_dias_mes":31,"n_dias_com_dados":31},"ABR":{"qtd_dia":{"1":2482.78,"2":2351.67,"4":1407.76,"5":1049.54,"6":1494.93,"7":1748.51,"8":2389.44,"9":1861.32,"10":1992.97,"11":1184.01,"12":1620.33,"13":1394.01,"14":1512.98,"15":1650.16},"qtd_material":{"MISM":11796.83,"TESO":3528.97,"PACH":2551.73,"OXIC":1618.27,"PAES":1248.62,"ESTS":796.75,"CAVA":776.27,"GRAU":725.23,"CAFO":382.38,"MISS":284.94,"PACP":251.05,"SGUA":179.37},"qtd_uf":{"MG":10165.26,"RJ":4583.09,"SP":2880.86,"BA":1874.23,"TO":1290.8,"SE":1235.25,"GO":792.27,"ES":557.99,"PE":390.27,"PR":272.32,"RN":98.07},"preco_material":{"PAES":1683.18,"ESTS":1618.79,"MISM":1612.06,"SGUA":1605.0,"OXIC":1570.59,"PACP":1488.99,"TESO":1432.13,"CAFO":1386.63,"PACH":1380.99,"GRAU":1339.73,"CAVA":1288.63,"MISS":1077.43},"preco_medio_semicms":1514.14,"preco_medio_comicms":1638.58,"preco_regiao":{"Norte":1698.3,"Centro-Oeste":1686.12,"Nordeste":1555.24,"Sudeste":1497.81,"Sul":1261.2},"top_fornecedores":{"SIMEC ITAUNA":5713.96,"SUCALOG COM. RECICL. METAIS":1050.87,"QUALY COM. TRANSP. SUCATAS":911.09,"METALPRONTO IND. COM.":829.58,"LHL IND. COM. SUCATAS":792.27,"RFR COM. RECICL. RESIDUOS":784.81,"BRR RECICL. COLETA":783.15,"ECOACO IND. COM. SUCATAS":670.23,"CARVALHO FERNANDES":669.59,"TRUFER COM. SUCATAS":637.84},"imp_material":{"SGUA":9.5,"MISS":6.17,"TESO":5.68,"PACH":5.53,"MISM":2.76,"CAVA":2.71,"PACP":2.4,"OXIC":1.18,"ESTS":1.16,"CAFO":1.12,"GRAU":0.57,"PAES":0.25},"frete":{"F":531,"C":407},"total_mes":24140.41,"total_tickets":913,"avg_impureza":3.22,"media_diaria":1724.32,"previsao_proximo_dia":1472.3,"ritmo_projecao":50005.14,"ultimo_dia":15,"total_dias_mes":30,"n_dias_com_dados":14}};
+
+const PREV={FEV:'JAN',MAR:'FEV',ABR:'MAR'};
+const MNOMES={JAN:'Janeiro',FEV:'Fevereiro',MAR:'Março',ABR:'Abril'};
+const PAL=['#60a5fa','#34d399','#f59e0b','#fb7185','#a78bfa','#fb923c','#38bdf8','#4ade80','#fbbf24','#f472b6','#818cf8','#2dd4bf','#e879f9','#a3e635'];
+const ACCENT='#f59e0b',BLUE='#60a5fa',TEAL='#34d399',CORAL='#fb7185',PURPLE='#a78bfa',ORANGE='#fb923c';
+const GRID='rgba(255,255,255,0.05)';
+const TICK={color:'#475569',font:{family:"'IBM Plex Sans',sans-serif",size:10}};
+const TT={backgroundColor:'#1a1f2e',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#f1f5f9',bodyColor:'#94a3b8',titleFont:{family:"'IBM Plex Sans',sans-serif",size:11,weight:'500'},bodyFont:{family:"'IBM Plex Sans',sans-serif",size:10},padding:8,cornerRadius:7,displayColors:true};
+
+let charts={};
+
+function destroyAll(){Object.values(charts).forEach(c=>c&&c.destroy());charts={};}
+
+function fmt(n,d=1){return Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmtR(n){return'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtK(n){if(n>=1000)return(n/1000).toFixed(1)+'k';return Math.round(n).toString();}
+
+function delta(cur,p,inv=false){
+  if(!p)return'';
+  const pct=((cur-p)/Math.abs(p)*100);
+  const up=pct>=0;
+  const good=inv?!up:up;
+  return `<span class="kpi-diff ${good?'pos':'neg'}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}% vs ${MNOMES[PREV[window._curM]]}</span>`;
+}
+
+function renderKPIs(m){
+  const d=DATA[m]; const prev=PREV[m]?DATA[PREV[m]]:null;
+  const icmsDiff=((d.preco_medio_comicms-d.preco_medio_semicms)/d.preco_medio_semicms*100).toFixed(1);
+  const isMes=d.ultimo_dia===d.total_dias_mes;
+  const projecLabel=isMes?'Volume realizado':'Projeção fim do mês';
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Volume total</div>
+      <div class="kpi-val">${fmt(d.total_mes,0)} t</div>
+      <div class="kpi-sub">Peso líq. s/ impureza</div>
+      ${prev?delta(d.total_mes,prev.total_mes):''}
+    </div>
+    <div class="kpi-card highlight">
+      <div class="kpi-label">${projecLabel}</div>
+      <div class="kpi-val" style="color:${isMes?'var(--teal)':'var(--accent)'}">${fmt(d.ritmo_projecao,0)} t</div>
+      <div class="kpi-sub">${isMes?'Mês encerrado':'Média de '+fmt(d.media_diaria,0)+' t/dia'}</div>
+    </div>
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Ritmo diário</div>
+      <div class="kpi-val">${fmt(d.media_diaria,0)} t</div>
+      <div class="kpi-sub">Média do período</div>
+      ${prev?delta(d.media_diaria,prev.media_diaria):''}
+    </div>
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Previsão próximo dia</div>
+      <div class="kpi-val" style="color:var(--blue)">${fmt(d.previsao_proximo_dia,0)} t</div>
+      <div class="kpi-sub">Média móvel últimos 5 dias</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Preço médio c/ ICMS</div>
+      <div class="kpi-val" style="font-size:16px">${fmtR(d.preco_medio_comicms)}</div>
+      <div class="kpi-sub">R$/ton — nota fiscal</div>
+      ${prev?delta(d.preco_medio_comicms,prev.preco_medio_comicms):''}
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Preço médio s/ ICMS</div>
+      <div class="kpi-val" style="font-size:16px">${fmtR(d.preco_medio_semicms)}</div>
+      <div class="kpi-sub">Economia de ${icmsDiff}% vs c/ ICMS</div>
+      ${prev?delta(d.preco_medio_semicms,prev.preco_medio_semicms):''}
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Descargas · Impureza</div>
+      <div class="kpi-val">${d.total_tickets.toLocaleString('pt-BR')}</div>
+      <div class="kpi-sub">Tickets · ${fmt(d.avg_impureza,2)}% impureza</div>
+      ${prev?delta(d.total_tickets,prev.total_tickets):''}
+    </div>`;
+}
+
+/* ---- CHART BUILDERS ---- */
+
+// Horizontal bar com data labels
+function hbar(id, labels, data, colors, opts={}){
+  const barH = opts.barH||22;
+  const h = labels.length*barH + 50;
+  const wrap = document.getElementById(opts.wrap||('wrap-'+id.replace('c-','')));
+  if(wrap) wrap.style.height=h+'px';
+
+  const maxVal = Math.max(...data);
+  return new Chart(document.getElementById(id),{
+    type:'bar',
+    data:{labels, datasets:[{data, backgroundColor:colors, borderRadius:3, borderSkipped:false, barThickness:barH-6}]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...TT, callbacks:{label:ctx=>' '+(opts.fmt?opts.fmt(ctx.raw):fmt(ctx.raw,1)+(opts.unit||' ton'))}},
+        datalabels:{
+          anchor:'end', align:'end',
+          color:'#94a3b8',
+          font:{family:"'IBM Plex Mono',monospace", size:9.5, weight:'500'},
+          formatter:(v)=>opts.fmt?opts.fmt(v):fmtK(v)+(opts.unit||'t'),
+          clip:false,
+          padding:{right:4}
+        }
+      },
+      layout:{padding:{right:opts.rightPad||52}},
+      scales:{
+        x:{ticks:{...TICK, callback:v=>opts.xfmt?opts.xfmt(v):fmtK(v)}, grid:{color:GRID}, max:maxVal*1.28},
+        y:{ticks:{...TICK, font:{...TICK.font, size:10.5}}, grid:{display:false}}
+      }
+    }
+  });
+}
+
+function renderCharts(m){
+  destroyAll();
+  const d=DATA[m];
+  const mnAbbr={JAN:'Jan',FEV:'Fev',MAR:'Mar',ABR:'Abr'}[m];
+
+  /* 1 — DIÁRIO */
+  const dias=Object.keys(d.qtd_dia).map(Number).sort((a,b)=>a-b);
+  charts.dia=new Chart(document.getElementById('c-dia'),{
+    type:'line',
+    data:{
+      labels:dias.map(x=>x+'/'+mnAbbr),
+      datasets:[{
+        data:dias.map(k=>d.qtd_dia[k]),
+        borderColor:ACCENT, backgroundColor:'rgba(245,158,11,0.08)',
+        borderWidth:2, pointRadius:2.5, pointBackgroundColor:ACCENT, fill:true, tension:0.35
+      },{
+        // média diária como linha de referência
+        data:dias.map(()=>d.media_diaria),
+        borderColor:'rgba(96,165,250,0.5)', borderDash:[5,4],
+        borderWidth:1.5, pointRadius:0, fill:false, tension:0,
+        label:'Média'
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...TT, callbacks:{label:ctx=>ctx.datasetIndex===0?' '+fmt(ctx.raw,1)+' ton':' Média: '+fmt(ctx.raw,1)+' ton'}},
+        datalabels:{
+          display:(ctx)=>{
+            if(ctx.datasetIndex!==0)return false;
+            const data=ctx.chart.data.datasets[0].data;
+            const max=Math.max(...data), min=Math.min(...data);
+            const v=data[ctx.dataIndex];
+            return v===max||v===min;
+          },
+          anchor:'end', align:'top',
+          color:'#94a3b8',
+          font:{family:"'IBM Plex Mono',monospace",size:9,weight:'500'},
+          formatter:v=>fmtK(v)+'t'
+        }
+      },
+      scales:{
+        x:{ticks:{...TICK,maxRotation:0,autoSkip:true,maxTicksLimit:16},grid:{display:false}},
+        y:{ticks:{...TICK,callback:v=>fmtK(v)+'t'},grid:{color:GRID}}
+      }
+    }
+  });
+
+  /* 2 — MATERIAL */
+  const matK=Object.keys(d.qtd_material).sort((a,b)=>d.qtd_material[b]-d.qtd_material[a]);
+  charts.mat=hbar('c-mat', matK, matK.map(k=>d.qtd_material[k]), matK.map((_,i)=>PAL[i%PAL.length]), {wrap:'wrap-mat', barH:24});
+
+  /* 3 — UF */
+  const ufK=Object.keys(d.qtd_uf).sort((a,b)=>d.qtd_uf[b]-d.qtd_uf[a]);
+  charts.uf=hbar('c-uf', ufK, ufK.map(k=>d.qtd_uf[k]), TEAL, {wrap:'wrap-uf', barH:24});
+
+  /* 4 — PREÇO POR MATERIAL */
+  const pmK=Object.keys(d.preco_material).sort((a,b)=>d.preco_material[b]-d.preco_material[a]);
+  charts.prm=hbar('c-prm', pmK, pmK.map(k=>d.preco_material[k]), pmK.map((_,i)=>PAL[i%PAL.length]),
+    {wrap:'wrap-prm', barH:24, fmt:v=>'R$'+Math.round(v), xfmt:v=>'R$'+Math.round(v), unit:'', rightPad:64});
+
+  /* 5 — PREÇO POR REGIÃO */
+  const regOrd=['Norte','Nordeste','Centro-Oeste','Sudeste','Sul'].filter(r=>d.preco_regiao[r]);
+  const regCols=[BLUE,ORANGE,PURPLE,CORAL,TEAL];
+  const regVals=regOrd.map(r=>d.preco_regiao[r]);
+  const regMax=Math.max(...regVals);
+  charts.reg=new Chart(document.getElementById('c-reg'),{
+    type:'bar',
+    data:{labels:regOrd, datasets:[{data:regVals, backgroundColor:regCols.slice(0,regOrd.length), borderRadius:5, barThickness:28}]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...TT, callbacks:{label:ctx=>' R$ '+fmt(ctx.raw,2)+'/ton'}},
+        datalabels:{
+          anchor:'end', align:'top',
+          color:'#94a3b8',
+          font:{family:"'IBM Plex Mono',monospace",size:10,weight:'500'},
+          formatter:v=>'R$'+Math.round(v)
+        }
+      },
+      layout:{padding:{top:22}},
+      scales:{
+        x:{ticks:{...TICK,font:{...TICK.font,size:11}},grid:{display:false}},
+        y:{ticks:{...TICK,callback:v=>'R$'+Math.round(v)},grid:{color:GRID},min:900,max:regMax*1.15}
+      }
+    }
+  });
+
+  /* 6 — TOP FORNECEDORES */
+  const fornK=Object.keys(d.top_fornecedores);
+  charts.forn=hbar('c-forn', fornK, fornK.map(k=>d.top_fornecedores[k]),
+    PAL.slice(0,fornK.length), {wrap:'wrap-forn', barH:28, rightPad:58});
+
+  /* 7 — IMPUREZA */
+  const impRaw=d.imp_material;
+  const impK=Object.keys(impRaw).sort((a,b)=>impRaw[b]-impRaw[a]);
+  const impCols=impK.map(k=>impRaw[k]>5?CORAL:impRaw[k]>2?ORANGE:TEAL);
+  charts.imp=hbar('c-imp', impK, impK.map(k=>impRaw[k]), impCols,
+    {wrap:'wrap-imp', barH:22, fmt:v=>v.toFixed(1)+'%', xfmt:v=>v+'%', unit:'', rightPad:42});
+
+  /* 8 — FRETE DOUGHNUT */
+  const fob=d.frete.F||0, cif=d.frete.C||0, tot=fob+cif;
+  document.getElementById('legend-frete').innerHTML=`
+    <div class="legend-item"><span class="ldot" style="background:${BLUE}"></span>FOB — ${Math.round(fob/tot*100)}% (${fob})</div>
+    <div class="legend-item"><span class="ldot" style="background:${ACCENT}"></span>CIF — ${Math.round(cif/tot*100)}% (${cif})</div>`;
+  charts.frt=new Chart(document.getElementById('c-frt'),{
+    type:'doughnut',
+    data:{labels:['FOB','CIF'], datasets:[{data:[fob,cif], backgroundColor:[BLUE,ACCENT], borderWidth:0, hoverOffset:5}]},
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'58%',
+      plugins:{
+        legend:{display:false},
+        tooltip:{...TT, callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/tot*100)}%)`}},
+        datalabels:{
+          color:'#0f1117',
+          font:{family:"'IBM Plex Sans',sans-serif",size:12,weight:'600'},
+          formatter:(v,ctx)=>{const pct=Math.round(v/tot*100); return pct>5?pct+'%':'';}
+        }
+      }
+    }
+  });
+}
+
+function switchMonth(m){
+  window._curM=m;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.m===m));
+  renderKPIs(m);
+  renderCharts(m);
+}
+
+document.getElementById('tabs').addEventListener('click',e=>{
+  const t=e.target.closest('.tab');
+  if(t)switchMonth(t.dataset.m);
+});
+
+switchMonth('JAN');
+</script>
+</body>
+</html>
