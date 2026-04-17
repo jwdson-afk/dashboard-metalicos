@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Metálicos 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1117;--bg2:#161922;--card:#1a1f2e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --accent:#f59e0b;--accent2:#fb923c;
+  --blue:#60a5fa;--teal:#34d399;--purple:#a78bfa;--coral:#fb7185;
+  --text:#f1f5f9;--muted:#94a3b8;--faint:#475569;
+  --r:11px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;overflow-x:hidden}
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:200}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#0f1117;flex-shrink:0}
+.htitle{font-size:14px;font-weight:600;letter-spacing:-0.2px;line-height:1.2}
+.hsub{font-size:10px;color:var(--muted)}
+.badge{background:rgba(245,158,11,0.14);color:var(--accent);border:1px solid rgba(245,158,11,0.28);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
+.tabs-wrap{background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs-wrap::-webkit-scrollbar{display:none}
+.tabs{display:flex;min-width:max-content;padding:0 16px}
+.tab{padding:10px 18px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .18s;margin-bottom:-1px;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--text)}
+.main{padding:14px 14px 40px;max-width:1440px;margin:0 auto}
+/* KPI */
+.kg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.kc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 13px;position:relative;overflow:hidden;transition:border-color .2s;min-width:0}
+.kc.hl::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.kc.hl{border-color:rgba(245,158,11,0.3)}
+.kl{font-size:9px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv{font-size:18px;font-weight:600;color:var(--text);letter-spacing:-0.5px;font-family:'IBM Plex Mono',monospace;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ks{font-size:9.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kd{display:inline-block;font-size:9px;padding:2px 5px;border-radius:4px;margin-top:4px;font-weight:500}
+.kd.bad{background:rgba(251,113,133,0.15);color:var(--coral)}
+.kd.good{background:rgba(52,211,153,0.15);color:var(--teal)}
+.kd.neutral{background:rgba(148,163,184,0.12);color:var(--muted)}
+/* CHARTS */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px;min-width:0;transition:border-color .2s}
+.cc.full{grid-column:1/-1}
+.ct{font-size:9.5px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;display:flex;align-items:center;gap:5px}
+.ct::before{content:'';display:inline-block;width:3px;height:10px;background:var(--accent);border-radius:2px;flex-shrink:0}
+.leg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.li{display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted)}
+.ld{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+/* RITMO MATERIAL TABLE */
+.ritmo-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ritmo-table{width:100%;border-collapse:collapse;font-size:11px}
+.ritmo-table th{font-size:9px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.ritmo-table th.num{text-align:right}
+.ritmo-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text);white-space:nowrap}
+.ritmo-table td.num{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.ritmo-table td.num.hi{color:var(--text)}
+.ritmo-table tr:last-child td{border-bottom:none}
+.ritmo-table tr:hover td{background:rgba(255,255,255,0.03)}
+.mat-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.3px}
+.bar-cell{min-width:80px}
+.bar-track{background:rgba(255,255,255,0.06);border-radius:3px;height:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .3s}
+.trend{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:500}
+.trend.up{background:rgba(251,113,133,0.15);color:var(--coral)}
+.trend.down{background:rgba(52,211,153,0.15);color:var(--teal)}
+.trend.eq{background:rgba(148,163,184,0.1);color:var(--faint)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--faint);border-radius:3px}
+footer{text-align:center;padding:16px;font-size:10px;color:var(--faint);border-top:1px solid var(--border);margin-top:12px}
+@media(min-width:900px){
+  .hdr{padding:14px 28px}.tabs{padding:0 28px}.main{padding:18px 28px 48px}
+  .kg{grid-template-columns:repeat(8,1fr);gap:10px;margin-bottom:18px}
+  .kv{font-size:20px}.cg{gap:12px}
+  .ritmo-table{font-size:12px}.ritmo-table th{font-size:9.5px}
+}
+@media(max-width:899px){
+  .kg{grid-template-columns:repeat(2,1fr)}
+  .cg{grid-template-columns:1fr}.cc.full,.cc{grid-column:1}
+}
+@media(max-width:480px){.kv{font-size:16px}.kg{gap:7px}.cg{gap:8px}.cc{padding:12px 12px}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:10px;min-width:0">
+    <div class="logo">M</div>
+    <div style="min-width:0">
+      <div class="htitle">Entrada de Metálicos 2026</div>
+      <div class="hsub">Peso líq. s/ impureza · Interligação Cariacica–Itaúna</div>
+    </div>
+  </div>
+  <div class="badge">Jan–Abr 2026</div>
+</div>
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-m="JAN">Janeiro</button>
+    <button class="tab" data-m="FEV">Fevereiro</button>
+    <button class="tab" data-m="MAR">Março</button>
+    <button class="tab" data-m="ABR">Abril <span style="opacity:.5;font-size:10px">parcial</span></button>
+  </div>
+</div>
+<div class="main">
+  <div class="kg" id="kpis"></div>
+  <div class="cg">
+    <div class="cc full"><div class="ct">Volume diário — toneladas (peso líquido s/ impureza)</div><div style="position:relative;height:170px"><canvas id="c-dia" role="img" aria-label="Volume diário"></canvas></div></div>
+    <div class="cc"><div class="ct">Volume por material (ton)</div><div id="wrap-mat" style="position:relative"><canvas id="c-mat" role="img" aria-label="Volume por material"></canvas></div></div>
+    <div class="cc"><div class="ct">Volume por estado</div><div id="leg-uf" class="leg" style="justify-content:center;margin-top:4px"></div><div style="position:relative;height:200px"><canvas id="c-uf" role="img" aria-label="Volume por estado"></canvas></div></div>
+
+    <!-- RITMO POR MATERIAL - full width -->
+    <div class="cc full">
+      <div class="ct">Ritmo por material — média diária, projeção e variação vs período anterior</div>
+      <div class="ritmo-wrap"><table class="ritmo-table" id="ritmo-table">
+        <thead><tr>
+          <th>Material</th>
+          <th class="num">Total (t)</th>
+          <th class="num">% do total</th>
+          <th class="num">Média/dia</th>
+          <th class="num">Dias c/ entrada</th>
+          <th class="num">Projeção mês</th>
+          <th>Distribuição</th>
+        </tr></thead>
+        <tbody id="ritmo-body"></tbody>
+      </table></div>
+    </div>
+
+    <div class="cc"><div class="ct">Preço médio por material — R$/ton s/ ICMS</div><div id="wrap-prm" style="position:relative"><canvas id="c-prm" role="img" aria-label="Preço por material"></canvas></div></div>
+    <div class="cc"><div class="ct">Preço médio por região — R$/ton s/ ICMS</div><div style="position:relative;height:210px"><canvas id="c-reg" role="img" aria-label="Preço por região"></canvas></div></div>
+    <div class="cc full"><div class="ct">Top 10 fornecedores — volume entregue (ton)</div><div id="wrap-forn" style="position:relative"><canvas id="c-forn" role="img" aria-label="Top fornecedores"></canvas></div></div>
+    <div class="cc"><div class="ct">Impureza média por material (%)</div><div id="wrap-imp" style="position:relative"><canvas id="c-imp" role="img" aria-label="Impureza por material"></canvas></div></div>
+    <div class="cc"><div class="ct">Modalidade de frete</div><div id="lf" class="leg" style="justify-content:center;margin-top:4px"></div><div style="position:relative;height:160px"><canvas id="c-frt" role="img" aria-label="CIF vs FOB"></canvas></div></div>
+  </div>
+</div>
+<footer>Dashboard de Metálicos · 2026 · Interligação Cariacica–Itaúna · Atualizado 16/Abr</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<script>
+Chart.register(ChartDataLabels);
+const DATA={"JAN": {"qtd_dia": {"2": 655.61, "3": 131.8, "4": 396.13, "5": 980.27, "6": 1266.02, "7": 2135.69, "8": 1983.22, "9": 1917.95, "10": 1706.94, "11": 1429.22, "12": 1763.0, "13": 1675.61, "14": 2320.86, "15": 1890.59, "16": 2199.27, "17": 1495.31, "18": 1803.19, "19": 1667.76, "20": 2020.57, "21": 1823.77, "22": 1963.34, "23": 2023.05, "24": 1769.03, "25": 1699.07, "26": 1333.46, "27": 1554.4, "28": 1778.86, "29": 1769.43, "30": 1807.88, "31": 1264.37}, "qtd_material": {"MISM": 25806.4, "TESO": 8103.85, "OXIC": 3397.08, "PAES": 3193.88, "CAVA": 2236.67, "ESTS": 2161.62, "GRAU": 1141.04, "PACH": 688.63, "SGUA": 515.24, "CAFO": 467.53, "PACP": 264.51, "SHRE": 133.54, "MISS": 106.46, "SFEB": 9.22}, "qtd_uf_pizza": {"MG": 13071.55, "SP": 9944.05, "ES": 8196.62, "RJ": 4540.06, "GO": 3250.4, "AM": 2929.87, "BA": 2170.66, "Outros": 4122.46}, "preco_material": {"PACH": 1638.62, "PAES": 1584.74, "ESTS": 1470.21, "MISM": 1428.24, "SGUA": 1423.47, "OXIC": 1401.57, "SHRE": 1340.13, "PACP": 1297.51, "GRAU": 1224.27, "TESO": 1208.87, "CAFO": 1191.53, "CAVA": 1146.89, "MISS": 900.1, "SFEB": 150.0}, "preco_medio_semicms": 1367.82, "preco_medio_comicms": 1507.0, "preco_regiao": {"Norte": 1654.5, "Centro-Oeste": 1460.12, "Nordeste": 1344.71, "Sudeste": 1334.08, "Sul": 1114.08}, "top_fornecedores": {"SUCALOG COM. RECICL. METAIS": 8193.5, "METALPRONTO COM. TRANSP. LTDA": 3410.73, "LHL IND. COM. SUCATAS": 3166.96, "COMETAIS INDUSTRIA E COMERCIO DE METAI": 2823.0, "GLOBAL TOOLS COM. INT. EIRELI": 2132.18, "RFR INDY RECYCLING COM. RESIDUOS": 2127.37, "BRR RECICL. COLETA": 1653.71, "CARVALHO FERNANDES": 1458.14, "RFR COMERCIO E RECICLAGEM DE RESIDUOS ": 1365.16, "SOF COM. RECICL. SUCATAS": 1220.27}, "imp_material": {"SGUA": 9.56, "MISS": 7.97, "TESO": 6.31, "CAVA": 3.03, "MISM": 2.45, "PACH": 1.89, "CAFO": 1.68, "PACP": 1.48, "SHRE": 1.34, "OXIC": 1.29, "GRAU": 1.04, "PAES": 0.18, "ESTS": 0.14}, "frete": {"F": 976, "C": 773}, "total_mes": 48225.67, "total_tickets": 1735, "avg_impureza": 2.96, "media_diaria": 1607.52, "previsao_proximo_dia": 1634.99, "ritmo_projecao": 48225.67, "ultimo_dia": 31, "total_dias_mes": 31, "economia_impureza_rs": 1727337.99, "ritmo_material": {"MISM": {"total": 25806.4, "media_dia": 860.21, "proj_mes": 25806.4, "dias_com_entrada": 30, "pct_total": 53.5}, "TESO": {"total": 8103.85, "media_dia": 270.13, "proj_mes": 8103.85, "dias_com_entrada": 30, "pct_total": 16.8}, "OXIC": {"total": 3397.08, "media_dia": 117.14, "proj_mes": 3397.08, "dias_com_entrada": 29, "pct_total": 7.0}, "PAES": {"total": 3193.88, "media_dia": 127.76, "proj_mes": 3193.88, "dias_com_entrada": 25, "pct_total": 6.6}, "CAVA": {"total": 2236.67, "media_dia": 79.88, "proj_mes": 2236.67, "dias_com_entrada": 28, "pct_total": 4.6}, "ESTS": {"total": 2161.62, "media_dia": 102.93, "proj_mes": 2161.62, "dias_com_entrada": 21, "pct_total": 4.5}, "GRAU": {"total": 1141.04, "media_dia": 49.61, "proj_mes": 1141.04, "dias_com_entrada": 23, "pct_total": 2.4}, "PACH": {"total": 688.63, "media_dia": 40.51, "proj_mes": 688.63, "dias_com_entrada": 17, "pct_total": 1.4}, "SGUA": {"total": 515.24, "media_dia": 32.2, "proj_mes": 515.24, "dias_com_entrada": 16, "pct_total": 1.1}, "CAFO": {"total": 467.53, "media_dia": 42.5, "proj_mes": 467.53, "dias_com_entrada": 11, "pct_total": 1.0}, "PACP": {"total": 264.51, "media_dia": 33.06, "proj_mes": 264.51, "dias_com_entrada": 8, "pct_total": 0.5}, "SHRE": {"total": 133.54, "media_dia": 44.51, "proj_mes": 133.54, "dias_com_entrada": 3, "pct_total": 0.3}, "MISS": {"total": 106.46, "media_dia": 15.21, "proj_mes": 106.46, "dias_com_entrada": 7, "pct_total": 0.2}, "SFEB": {"total": 9.22, "media_dia": 9.22, "proj_mes": 9.22, "dias_com_entrada": 1, "pct_total": 0.0}}, "kpi_prev": {}}, "FEV": {"qtd_dia": {"1": 589.29, "2": 1402.32, "3": 2019.87, "4": 2076.9, "5": 1833.34, "6": 1671.54, "7": 1467.22, "8": 672.91, "9": 1091.35, "10": 1359.31, "11": 2169.88, "12": 1372.27, "13": 1542.89, "14": 1116.73, "15": 1086.22, "16": 854.89, "17": 602.74, "18": 1368.27, "19": 1823.61, "20": 1826.19, "21": 1447.63, "22": 1095.53, "23": 1241.89, "24": 1706.61, "25": 1881.05, "26": 2214.05, "27": 2065.65, "28": 1146.78}, "qtd_material": {"MISM": 21697.24, "TESO": 6850.54, "OXIC": 3486.17, "CAVA": 2127.35, "ESTS": 1666.05, "PAES": 1537.74, "GRAU": 1346.14, "CAFO": 512.3, "PACH": 436.38, "PACP": 371.15, "SGUA": 294.85, "SHRE": 258.26, "MISS": 103.38, "SFEB": 30.38, "FOFO": 17.55, "SAFC": 11.31, "RECU": 0.14}, "qtd_uf_pizza": {"SP": 11408.35, "ES": 8564.39, "MG": 8193.46, "RJ": 5073.09, "BA": 2519.83, "TO": 2098.98, "GO": 1183.6, "Outros": 1705.23}, "preco_material": {"PAES": 1522.17, "ESTS": 1504.49, "MISM": 1452.89, "RECU": 1437.32, "OXIC": 1431.64, "SHRE": 1430.34, "SGUA": 1423.37, "FOFO": 1309.44, "PACP": 1285.59, "GRAU": 1281.79, "TESO": 1261.32, "CAFO": 1202.72, "PACH": 1178.34, "CAVA": 1153.55, "MISS": 809.99, "SFEB": 150.0, "SAFC": 50.0}, "preco_medio_semicms": 1378.58, "preco_medio_comicms": 1508.06, "preco_regiao": {"Centro-Oeste": 1517.61, "Norte": 1509.6, "Nordeste": 1411.36, "Sudeste": 1367.68, "Sul": 1187.65}, "top_fornecedores": {"SUCALOG COM. RECICL. METAIS": 6959.96, "METALPRONTO COM. TRANSP. LTDA": 3111.69, "ZULMIRA ACHITTE CARREIRA FILHOS": 2042.07, "RFR INDY RECYCLING COM. RESIDUOS": 1753.34, "RFR COMERCIO E RECICLAGEM DE RESIDUOS ": 1700.15, "GLOBAL TOOLS COM. INT. EIRELI": 1554.71, "BRR RECICL. COLETA": 1419.82, "VILFER COMERCIO DE METAIS LTDA": 1385.03, "QUALY COMERCIO E TRANSPORTE DE SUCATAS": 1226.21, "METALPRONTO IND. COM. LTDA": 1206.6}, "imp_material": {"SGUA": 11.38, "MISS": 7.95, "PACH": 6.11, "TESO": 6.1, "MISM": 2.88, "CAVA": 2.32, "PACP": 1.92, "CAFO": 1.81, "OXIC": 1.7, "SHRE": 1.63, "GRAU": 0.52, "ESTS": 0.29, "PAES": 0.04}, "frete": {"F": 871, "C": 652}, "total_mes": 41026.08, "total_tickets": 1491, "avg_impureza": 3.14, "media_diaria": 1465.22, "previsao_proximo_dia": 1802.83, "ritmo_projecao": 41026.08, "ultimo_dia": 28, "total_dias_mes": 28, "economia_impureza_rs": 1664399.44, "ritmo_material": {"MISM": {"total": 21697.24, "media_dia": 774.9, "proj_mes": 21697.24, "dias_com_entrada": 28, "pct_total": 52.9}, "TESO": {"total": 6850.54, "media_dia": 244.66, "proj_mes": 6850.54, "dias_com_entrada": 28, "pct_total": 16.7}, "OXIC": {"total": 3486.17, "media_dia": 134.08, "proj_mes": 3486.17, "dias_com_entrada": 26, "pct_total": 8.5}, "CAVA": {"total": 2127.35, "media_dia": 81.82, "proj_mes": 2127.35, "dias_com_entrada": 26, "pct_total": 5.2}, "ESTS": {"total": 1666.05, "media_dia": 79.34, "proj_mes": 1666.05, "dias_com_entrada": 21, "pct_total": 4.1}, "PAES": {"total": 1537.74, "media_dia": 73.23, "proj_mes": 1537.74, "dias_com_entrada": 21, "pct_total": 3.7}, "GRAU": {"total": 1346.14, "media_dia": 64.1, "proj_mes": 1346.14, "dias_com_entrada": 21, "pct_total": 3.3}, "CAFO": {"total": 512.3, "media_dia": 46.57, "proj_mes": 512.3, "dias_com_entrada": 11, "pct_total": 1.2}, "PACH": {"total": 436.38, "media_dia": 62.34, "proj_mes": 436.38, "dias_com_entrada": 7, "pct_total": 1.1}, "PACP": {"total": 371.15, "media_dia": 30.93, "proj_mes": 371.15, "dias_com_entrada": 12, "pct_total": 0.9}, "SGUA": {"total": 294.85, "media_dia": 26.8, "proj_mes": 294.85, "dias_com_entrada": 11, "pct_total": 0.7}, "SHRE": {"total": 258.26, "media_dia": 64.56, "proj_mes": 258.26, "dias_com_entrada": 4, "pct_total": 0.6}, "MISS": {"total": 103.38, "media_dia": 12.92, "proj_mes": 103.38, "dias_com_entrada": 8, "pct_total": 0.3}, "SFEB": {"total": 30.38, "media_dia": 15.19, "proj_mes": 30.38, "dias_com_entrada": 2, "pct_total": 0.1}, "FOFO": {"total": 17.55, "media_dia": 17.55, "proj_mes": 17.55, "dias_com_entrada": 1, "pct_total": 0.0}, "SAFC": {"total": 11.31, "media_dia": 11.31, "proj_mes": 11.31, "dias_com_entrada": 1, "pct_total": 0.0}, "RECU": {"total": 0.14, "media_dia": 0.07, "proj_mes": 0.14, "dias_com_entrada": 2, "pct_total": 0.0}}, "kpi_prev": {"total_mes": 43383.99, "total_tickets": 1567, "avg_impureza": 3.0, "preco_medio_semicms": 1369.76, "preco_medio_comicms": 1509.52, "media_diaria": 1606.81, "economia_rs": 1561447.52, "periodo": "1–28 Jan", "ritmo_mat": {"MISM": 23357.25, "TESO": 7417.04, "OXIC": 3142.2, "CAVA": 1897.94, "ESTS": 1974.65, "PAES": 2670.63, "GRAU": 944.67, "CAFO": 434.02, "PACH": 649.68, "PACP": 211.5, "SGUA": 460.96, "SHRE": 133.54, "MISS": 80.69, "SFEB": 9.22, "FOFO": 0.0, "SAFC": 0.0, "RECU": 0.0}}}, "MAR": {"qtd_dia": {"1": 926.83, "2": 1269.25, "3": 1609.7, "4": 2192.98, "5": 2142.06, "6": 2007.65, "7": 1437.61, "8": 886.04, "9": 1407.99, "10": 1594.65, "11": 2048.65, "12": 1581.46, "13": 1669.98, "14": 657.33, "15": 658.89, "16": 1038.94, "17": 1933.31, "18": 2206.03, "19": 1543.79, "20": 1421.35, "21": 1103.16, "22": 669.76, "23": 1831.57, "24": 2082.89, "25": 1700.76, "26": 1865.23, "27": 2605.33, "28": 1528.87, "29": 874.42, "30": 1236.09, "31": 1402.72}, "qtd_material": {"MISM": 22021.3, "TESO": 6679.71, "PACH": 4216.32, "OXIC": 4026.06, "CAVA": 3000.77, "ESTS": 1726.51, "GRAU": 1590.77, "PAES": 1568.51, "CAFO": 861.44, "SGUA": 680.32, "PACP": 492.23, "MISS": 171.89, "SFEB": 46.87, "FOFO": 36.11, "SAFC": 16.48}, "qtd_uf_pizza": {"SP": 11566.15, "ES": 9933.29, "MG": 8617.59, "RJ": 7656.43, "BA": 3120.14, "TO": 2127.17, "GO": 1714.82, "Outros": 2399.7}, "preco_material": {"PAES": 1678.07, "FOFO": 1649.82, "ESTS": 1623.21, "MISM": 1543.87, "SGUA": 1505.08, "OXIC": 1502.36, "TESO": 1345.66, "PACP": 1338.1, "CAFO": 1305.76, "PACH": 1289.33, "GRAU": 1268.8, "CAVA": 1200.65, "MISS": 1117.25, "SFEB": 150.0, "SAFC": 48.03}, "preco_medio_semicms": 1443.23, "preco_medio_comicms": 1578.09, "preco_regiao": {"Centro-Oeste": 1569.04, "Norte": 1567.21, "Nordeste": 1476.33, "Sudeste": 1431.66, "Sul": 1240.17}, "top_fornecedores": {"SUCALOG COM. RECICL. METAIS": 5585.44, "METALPRONTO COM. TRANSP. LTDA": 3216.4, "ZULMIRA ACHITTE CARREIRA FILHOS": 2182.56, "BRR RECICL. COLETA": 2055.43, "RFR INDY RECYCLING COM. RESIDUOS": 1962.0, "GLOBAL TOOLS COM. INT. EIRELI": 1833.38, "RFR COMERCIO E RECICLAGEM DE RESIDUOS ": 1772.23, "LHL IND. COM. SUCATAS": 1544.89, "METALPRONTO IND. COM. LTDA": 1473.35, "QUALY COMERCIO E TRANSPORTE DE SUCATAS": 1307.53}, "imp_material": {"SGUA": 9.91, "PACH": 6.27, "TESO": 5.86, "MISS": 5.53, "MISM": 3.1, "CAVA": 2.4, "PACP": 2.07, "OXIC": 1.78, "CAFO": 1.46, "ESTS": 0.74, "GRAU": 0.57, "PAES": 0.19}, "frete": {"F": 1035, "C": 773}, "total_mes": 47135.29, "total_tickets": 1773, "avg_impureza": 3.37, "media_diaria": 1520.49, "previsao_proximo_dia": 1529.49, "ritmo_projecao": 47135.29, "ultimo_dia": 31, "total_dias_mes": 31, "economia_impureza_rs": 2208510.37, "ritmo_material": {"MISM": {"total": 22021.3, "media_dia": 710.36, "proj_mes": 22021.3, "dias_com_entrada": 31, "pct_total": 46.7}, "TESO": {"total": 6679.71, "media_dia": 222.66, "proj_mes": 6679.71, "dias_com_entrada": 30, "pct_total": 14.2}, "PACH": {"total": 4216.32, "media_dia": 140.54, "proj_mes": 4216.32, "dias_com_entrada": 30, "pct_total": 8.9}, "OXIC": {"total": 4026.06, "media_dia": 138.83, "proj_mes": 4026.06, "dias_com_entrada": 29, "pct_total": 8.5}, "CAVA": {"total": 3000.77, "media_dia": 115.41, "proj_mes": 3000.77, "dias_com_entrada": 26, "pct_total": 6.4}, "ESTS": {"total": 1726.51, "media_dia": 75.07, "proj_mes": 1726.51, "dias_com_entrada": 23, "pct_total": 3.7}, "GRAU": {"total": 1590.77, "media_dia": 61.18, "proj_mes": 1590.77, "dias_com_entrada": 26, "pct_total": 3.4}, "PAES": {"total": 1568.51, "media_dia": 78.43, "proj_mes": 1568.51, "dias_com_entrada": 20, "pct_total": 3.3}, "CAFO": {"total": 861.44, "media_dia": 43.07, "proj_mes": 861.44, "dias_com_entrada": 20, "pct_total": 1.8}, "SGUA": {"total": 680.32, "media_dia": 37.8, "proj_mes": 680.32, "dias_com_entrada": 18, "pct_total": 1.4}, "PACP": {"total": 492.23, "media_dia": 49.22, "proj_mes": 492.23, "dias_com_entrada": 10, "pct_total": 1.0}, "MISS": {"total": 171.89, "media_dia": 21.49, "proj_mes": 171.89, "dias_com_entrada": 8, "pct_total": 0.4}, "SFEB": {"total": 46.87, "media_dia": 11.72, "proj_mes": 46.87, "dias_com_entrada": 4, "pct_total": 0.1}, "FOFO": {"total": 36.11, "media_dia": 36.11, "proj_mes": 36.11, "dias_com_entrada": 1, "pct_total": 0.1}, "SAFC": {"total": 16.48, "media_dia": 8.24, "proj_mes": 16.48, "dias_com_entrada": 2, "pct_total": 0.0}}, "kpi_prev": {"total_mes": 40746.93, "total_tickets": 1491, "avg_impureza": 3.14, "preco_medio_semicms": 1379.48, "preco_medio_comicms": 1509.05, "media_diaria": 1455.25, "economia_rs": 1664399.44, "periodo": "1–31 Fev", "ritmo_mat": {"MISM": 21697.24, "TESO": 6850.54, "PACH": 436.38, "OXIC": 3486.17, "CAVA": 2127.35, "ESTS": 1666.05, "GRAU": 1346.14, "PAES": 1537.74, "CAFO": 512.3, "SGUA": 294.85, "PACP": 371.15, "MISS": 103.38, "SFEB": 30.38, "FOFO": 17.55, "SAFC": 11.31}}}, "ABR": {"qtd_dia": {"1": 2482.78, "2": 2351.67, "4": 1407.76, "5": 1049.54, "6": 1494.93, "7": 1748.51, "8": 2389.44, "9": 1861.32, "10": 1992.97, "11": 1184.01, "12": 1620.33, "13": 1394.01, "14": 1512.98, "15": 1650.16, "16": 1628.88}, "qtd_material": {"MISM": 12499.82, "TESO": 3734.18, "PACH": 2818.31, "OXIC": 1720.25, "PAES": 1316.64, "CAVA": 901.71, "GRAU": 826.37, "ESTS": 821.36, "CAFO": 382.38, "MISS": 301.71, "PACP": 267.19, "SGUA": 179.37}, "qtd_uf_pizza": {"MG": 7200.23, "RJ": 5043.44, "ES": 4216.74, "SP": 3074.65, "BA": 1994.06, "TO": 1355.61, "SE": 1235.25, "Outros": 1649.31}, "preco_material": {"ESTS": 1710.41, "PAES": 1682.51, "MISM": 1625.3, "OXIC": 1610.82, "SGUA": 1605.0, "PACP": 1448.63, "TESO": 1441.95, "CAFO": 1386.63, "PACH": 1383.21, "CAVA": 1297.3, "GRAU": 1228.26, "MISS": 1089.22}, "preco_medio_semicms": 1519.84, "preco_medio_comicms": 1666.59, "preco_regiao": {"Norte": 1699.16, "Centro-Oeste": 1686.12, "Nordeste": 1541.15, "Sudeste": 1507.39, "Sul": 1261.2}, "top_fornecedores": {"SUCALOG COM. RECICL. METAIS": 2375.83, "SIMEC ITAUNA": 1269.6, "METALPRONTO COM. TRANSP. LTDA": 1249.22, "GLOBAL TOOLS COM. INT. EIRELI": 1008.66, "QUALY COMERCIO E TRANSPORTE DE SUCATAS": 975.9, "METALPRONTO IND. COM. LTDA": 854.35, "RFR COMERCIO E RECICLAGEM DE RESIDUOS ": 842.88, "BRR RECICL. COLETA": 820.28, "LHL IND. COM. SUCATAS": 792.27, "TRUFER COM. SUCATAS LTDA": 736.82}, "imp_material": {"SGUA": 9.5, "MISS": 6.11, "TESO": 5.71, "PACH": 5.47, "CAVA": 2.88, "MISM": 2.74, "PACP": 2.12, "OXIC": 1.2, "ESTS": 1.13, "CAFO": 1.12, "GRAU": 0.54, "PAES": 0.23}, "frete": {"F": 574, "C": 427}, "total_mes": 25769.29, "total_tickets": 976, "avg_impureza": 3.21, "media_diaria": 1717.95, "previsao_proximo_dia": 1561.27, "ritmo_projecao": 49820.63, "ultimo_dia": 16, "total_dias_mes": 30, "economia_impureza_rs": 1173385.2, "ritmo_material": {"MISM": {"total": 12499.82, "media_dia": 833.32, "proj_mes": 24166.3, "dias_com_entrada": 15, "pct_total": 48.5}, "TESO": {"total": 3734.18, "media_dia": 248.95, "proj_mes": 7219.48, "dias_com_entrada": 15, "pct_total": 14.5}, "PACH": {"total": 2818.31, "media_dia": 187.89, "proj_mes": 5448.77, "dias_com_entrada": 15, "pct_total": 10.9}, "OXIC": {"total": 1720.25, "media_dia": 114.68, "proj_mes": 3325.77, "dias_com_entrada": 15, "pct_total": 6.7}, "PAES": {"total": 1316.64, "media_dia": 94.05, "proj_mes": 2633.34, "dias_com_entrada": 14, "pct_total": 5.1}, "CAVA": {"total": 901.71, "media_dia": 64.41, "proj_mes": 1803.45, "dias_com_entrada": 14, "pct_total": 3.5}, "GRAU": {"total": 826.37, "media_dia": 68.86, "proj_mes": 1790.41, "dias_com_entrada": 12, "pct_total": 3.2}, "ESTS": {"total": 821.36, "media_dia": 58.67, "proj_mes": 1642.74, "dias_com_entrada": 14, "pct_total": 3.2}, "CAFO": {"total": 382.38, "media_dia": 63.73, "proj_mes": 1274.6, "dias_com_entrada": 6, "pct_total": 1.5}, "MISS": {"total": 301.71, "media_dia": 33.52, "proj_mes": 770.99, "dias_com_entrada": 9, "pct_total": 1.2}, "PACP": {"total": 267.19, "media_dia": 29.69, "proj_mes": 682.85, "dias_com_entrada": 9, "pct_total": 1.0}, "SGUA": {"total": 179.37, "media_dia": 29.89, "proj_mes": 597.83, "dias_com_entrada": 6, "pct_total": 0.7}}, "kpi_prev": {"total_mes": 23130.01, "total_tickets": 865, "avg_impureza": 3.96, "preco_medio_semicms": 1380.91, "preco_medio_comicms": 1511.47, "media_diaria": 1445.63, "economia_rs": 1209396.47, "periodo": "1–16 Mar", "ritmo_mat": {"MISM": 10795.58, "TESO": 3402.89, "PACH": 1980.99, "OXIC": 2566.33, "PAES": 780.57, "CAVA": 1444.07, "GRAU": 650.4, "ESTS": 636.39, "CAFO": 411.77, "MISS": 9.35, "PACP": 79.27, "SGUA": 298.83}}}};
+
+const PREV={FEV:'JAN',MAR:'FEV',ABR:'MAR'};
+const MNOMES={JAN:'Janeiro',FEV:'Fevereiro',MAR:'Março',ABR:'Abril'};
+const PAL=['#60a5fa','#34d399','#f59e0b','#fb7185','#a78bfa','#fb923c','#38bdf8','#4ade80','#fbbf24','#f472b6','#818cf8','#2dd4bf','#e879f9','#a3e635'];
+const ACCENT='#f59e0b',BLUE='#60a5fa',TEAL='#34d399',CORAL='#fb7185',PURPLE='#a78bfa',ORANGE='#fb923c';
+const GRID='rgba(255,255,255,0.05)';
+const TICK={color:'#475569',font:{family:"'IBM Plex Sans',sans-serif",size:10}};
+const TT={backgroundColor:'#1a1f2e',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#f1f5f9',bodyColor:'#94a3b8',titleFont:{family:"'IBM Plex Sans',sans-serif",size:11,weight:'500'},bodyFont:{family:"'IBM Plex Sans',sans-serif",size:10},padding:8,cornerRadius:7,displayColors:true};
+
+let charts={};
+window._curM='JAN';
+
+function destroyAll(){Object.values(charts).forEach(c=>c&&c.destroy());charts={};}
+function fmt(n,d=1){return Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmtR(n){return'R$ '+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtK(n){if(n>=1000)return(n/1000).toFixed(1)+'k';return Math.round(n).toString();}
+function fmtMM(n){if(n>=1e6)return'R$ '+(n/1e6).toFixed(2)+'M';return'R$ '+(n/1000).toFixed(0)+'k';}
+function isMobile(){return window.innerWidth<900;}
+
+function delta(cur,prevVal,isPrice){
+  if(prevVal==null)return'';
+  const pct=((cur-prevVal)/Math.abs(prevVal)*100),up=pct>=0,bad=isPrice?up:!up;
+  const p=DATA[window._curM].kpi_prev,label=p&&p.periodo?p.periodo:'ant.';
+  return `<span class="kd ${bad?'bad':'good'}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}% vs ${label}</span>`;
+}
+
+function renderKPIs(m){
+  const d=DATA[m],p=d.kpi_prev&&Object.keys(d.kpi_prev).length?d.kpi_prev:null;
+  const full=d.ultimo_dia===d.total_dias_mes;
+  const idiff=((d.preco_medio_comicms-d.preco_medio_semicms)/d.preco_medio_semicms*100).toFixed(1);
+  document.getElementById('kpis').innerHTML=`
+    <div class="kc hl"><div class="kl">Volume total</div><div class="kv">${fmt(d.total_mes,0)} t</div><div class="ks">Peso líq. s/ impureza</div>${p?delta(d.total_mes,p.total_mes,false):`<span class="kd neutral">Período base</span>`}</div>
+    <div class="kc hl"><div class="kl">${full?'Realizado':'Projeção mês'}</div><div class="kv" style="color:${full?'var(--teal)':'var(--accent)'}">${fmt(d.ritmo_projecao,0)} t</div><div class="ks">${full?'Mês encerrado':'Base '+fmt(d.media_diaria,0)+' t/dia'}</div></div>
+    <div class="kc hl"><div class="kl">Ritmo diário</div><div class="kv">${fmt(d.media_diaria,0)} t</div><div class="ks">Média do período</div>${p?delta(d.media_diaria,p.media_diaria,false):''}</div>
+    <div class="kc hl"><div class="kl">Previsão próx. dia</div><div class="kv" style="color:var(--blue)">${fmt(d.previsao_proximo_dia,0)} t</div><div class="ks">Média móvel 5 dias</div></div>
+    <div class="kc"><div class="kl">Preço médio c/ ICMS</div><div class="kv" style="font-size:15px">${fmtR(d.preco_medio_comicms)}</div><div class="ks">R$/ton — nota fiscal</div>${p?delta(d.preco_medio_comicms,p.preco_medio_comicms,true):''}</div>
+    <div class="kc"><div class="kl">Preço médio s/ ICMS</div><div class="kv" style="font-size:15px">${fmtR(d.preco_medio_semicms)}</div><div class="ks">Economia ${idiff}% vs c/ ICMS</div>${p?delta(d.preco_medio_semicms,p.preco_medio_semicms,true):''}</div>
+    <div class="kc"><div class="kl">Descargas</div><div class="kv">${d.total_tickets.toLocaleString('pt-BR')}</div><div class="ks">${fmt(d.avg_impureza,2)}% impureza média</div>${p?delta(d.total_tickets,p.total_tickets,false):''}</div>
+    <div class="kc"><div class="kl">Economia impureza</div><div class="kv" style="font-size:15px">${fmtMM(d.economia_impureza_rs)}</div><div class="ks">Desconto no fornecedor</div>${p&&p.economia_rs?`<span class="kd neutral">${fmtMM(p.economia_rs)} ant.</span>`:''}</div>`;
+  if(p&&!full){
+    const note=document.createElement('div');
+    note.style.cssText='grid-column:1/-1;font-size:10px;color:var(--faint);padding:4px 2px';
+    note.textContent=`↳ Variações comparando dias 1–${d.ultimo_dia} de ${MNOMES[m]} vs mesmos dias de ${MNOMES[PREV[m]]}`;
+    document.getElementById('kpis').appendChild(note);
+  }
+}
+
+function renderRitmoTable(m){
+  const d=DATA[m], rm=d.ritmo_material, p=d.kpi_prev, prevRm=p&&p.ritmo_mat?p.ritmo_mat:{};
+  const full=d.ultimo_dia===d.total_dias_mes;
+  const maxTotal=Math.max(...Object.values(rm).map(v=>v.total));
+  const mats=Object.keys(rm);
+  const rows=mats.map((mat,i)=>{
+    const r=rm[mat];
+    const barPct=Math.round(r.total/maxTotal*100);
+    const color=PAL[i%PAL.length];
+    // Trend vs período anterior
+    let trendHtml='<span class="trend eq">—</span>';
+    if(prevRm[mat]!=null){
+      const prev_total=prevRm[mat];
+      if(prev_total>0){
+        const pct=((r.total-prev_total)/prev_total*100);
+        const up=pct>=0;
+        trendHtml=`<span class="trend ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}%</span>`;
+      }
+    }
+    const projCell=full?'—':fmt(r.proj_mes,0)+' t';
+    return `<tr>
+      <td><span class="mat-badge" style="background:${color}22;color:${color}">${mat}</span></td>
+      <td class="num hi">${fmt(r.total,1)}</td>
+      <td class="num">${r.pct_total}%</td>
+      <td class="num hi">${fmt(r.media_dia,1)} t</td>
+      <td class="num">${r.dias_com_entrada}</td>
+      <td class="num">${projCell}</td>
+      <td class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${barPct}%;background:${color}"></div></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('ritmo-body').innerHTML=rows;
+}
+
+function hbar(id,labels,data,colors,opts={}){
+  const mobile=isMobile(),bh=mobile?(opts.barH||22)-4:opts.barH||22;
+  const wrap=document.getElementById(opts.wrap||'wrap-'+id.replace('c-',''));
+  if(wrap)wrap.style.height=(labels.length*bh+45)+'px';
+  const mx=Math.max(...data);
+  return new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:3,borderSkipped:false,barThickness:bh-5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>' '+(opts.fmt?opts.fmt(ctx.raw):fmt(ctx.raw,1)+(opts.unit||' ton'))}},datalabels:{anchor:'end',align:'end',color:'#94a3b8',font:{family:"'IBM Plex Mono',monospace",size:mobile?8.5:9.5,weight:'500'},formatter:v=>opts.fmt?opts.fmt(v):fmtK(v)+(opts.unit||'t'),clip:false,padding:{right:3}}},layout:{padding:{right:opts.rp||50}},scales:{x:{ticks:{...TICK,font:{...TICK.font,size:mobile?9:10},callback:v=>opts.xf?opts.xf(v):fmtK(v)},grid:{color:GRID},max:mx*1.28},y:{ticks:{...TICK,font:{...TICK.font,size:mobile?9:10.5}},grid:{display:false}}}}});
+}
+
+function renderCharts(m){
+  destroyAll();
+  const d=DATA[m],mobile=isMobile(),ab={JAN:'Jan',FEV:'Fev',MAR:'Mar',ABR:'Abr'}[m];
+
+  // Diário
+  const dias=Object.keys(d.qtd_dia).map(Number).sort((a,b)=>a-b);
+  charts.dia=new Chart(document.getElementById('c-dia'),{type:'line',data:{labels:dias.map(x=>x+'/'+ab),datasets:[{data:dias.map(k=>d.qtd_dia[k]),borderColor:ACCENT,backgroundColor:'rgba(245,158,11,0.08)',borderWidth:2,pointRadius:mobile?1.5:2.5,pointBackgroundColor:ACCENT,fill:true,tension:0.35},{data:dias.map(()=>d.media_diaria),borderColor:'rgba(96,165,250,0.4)',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>ctx.datasetIndex===0?' '+fmt(ctx.raw,1)+' ton':' Média: '+fmt(ctx.raw,1)+' ton'}},datalabels:{display:(ctx)=>{if(ctx.datasetIndex!==0)return false;const v=ctx.chart.data.datasets[0].data,mx=Math.max(...v),mn=Math.min(...v),cv=v[ctx.dataIndex];return cv===mx||cv===mn;},anchor:'end',align:'top',color:'#94a3b8',font:{family:"'IBM Plex Mono',monospace",size:mobile?8:9,weight:'500'},formatter:v=>fmtK(v)+'t'}},scales:{x:{ticks:{...TICK,font:{...TICK.font,size:mobile?9:10},maxRotation:0,autoSkip:true,maxTicksLimit:mobile?8:16},grid:{display:false}},y:{ticks:{...TICK,font:{...TICK.font,size:mobile?9:10},callback:v=>fmtK(v)+'t'},grid:{color:GRID}}}}});
+
+  // Material
+  const mK=Object.keys(d.qtd_material).sort((a,b)=>d.qtd_material[b]-d.qtd_material[a]);
+  charts.mat=hbar('c-mat',mK,mK.map(k=>d.qtd_material[k]),mK.map((_,i)=>PAL[i%PAL.length]),{wrap:'wrap-mat',barH:24});
+
+  // UF pizza
+  const ufK=Object.keys(d.qtd_uf_pizza),ufV=ufK.map(k=>d.qtd_uf_pizza[k]),ufCols=PAL.slice(0,ufK.length),ufTotal=ufV.reduce((a,b)=>a+b,0);
+  document.getElementById('leg-uf').innerHTML=ufK.map((k,i)=>`<div class="li"><span class="ld" style="background:${ufCols[i]}"></span>${k} ${fmt(d.qtd_uf_pizza[k]/ufTotal*100,1)}%</div>`).join('');
+  charts.uf=new Chart(document.getElementById('c-uf'),{type:'pie',data:{labels:ufK,datasets:[{data:ufV,backgroundColor:ufCols,borderWidth:1.5,borderColor:'#0f1117',hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw,1)} t (${fmt(ctx.raw/ufTotal*100,1)}%)`}},datalabels:{color:'#fff',font:{family:"'IBM Plex Sans',sans-serif",size:mobile?9:10,weight:'600'},formatter:(v,ctx)=>{const pct=v/ufTotal*100;return pct>5?ctx.chart.data.labels[ctx.dataIndex]+'\n'+fmt(pct,1)+'%':pct>3?fmt(pct,0)+'%':'';}}}}}); 
+
+  // Preço material
+  const pK=Object.keys(d.preco_material).sort((a,b)=>d.preco_material[b]-d.preco_material[a]);
+  charts.prm=hbar('c-prm',pK,pK.map(k=>d.preco_material[k]),pK.map((_,i)=>PAL[i%PAL.length]),{wrap:'wrap-prm',barH:24,fmt:v=>'R$'+Math.round(v),xf:v=>'R$'+Math.round(v),unit:'',rp:60});
+
+  // Preço região
+  const rO=['Norte','Nordeste','Centro-Oeste','Sudeste','Sul'].filter(r=>d.preco_regiao[r]),rV=rO.map(r=>d.preco_regiao[r]),rMx=Math.max(...rV);
+  charts.reg=new Chart(document.getElementById('c-reg'),{type:'bar',data:{labels:rO,datasets:[{data:rV,backgroundColor:[BLUE,ORANGE,PURPLE,CORAL,TEAL].slice(0,rO.length),borderRadius:5,barThickness:mobile?22:30}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>' R$ '+fmt(ctx.raw,2)+'/ton'}},datalabels:{anchor:'end',align:'top',color:'#94a3b8',font:{family:"'IBM Plex Mono',monospace",size:mobile?8.5:10,weight:'500'},formatter:v=>'R$'+Math.round(v)}},layout:{padding:{top:20}},scales:{x:{ticks:{...TICK,font:{...TICK.font,size:mobile?9:11}},grid:{display:false}},y:{ticks:{...TICK,callback:v=>'R$'+Math.round(v)},grid:{color:GRID},min:900,max:rMx*1.15}}}});
+
+  // Fornecedores
+  const fK=Object.keys(d.top_fornecedores);
+  charts.forn=hbar('c-forn',fK,fK.map(k=>d.top_fornecedores[k]),PAL.slice(0,fK.length),{wrap:'wrap-forn',barH:mobile?24:28,rp:55});
+
+  // Impureza
+  const iR=d.imp_material,iK=Object.keys(iR).sort((a,b)=>iR[b]-iR[a]);
+  charts.imp=hbar('c-imp',iK,iK.map(k=>iR[k]),iK.map(k=>iR[k]>5?CORAL:iR[k]>2?ORANGE:TEAL),{wrap:'wrap-imp',barH:mobile?20:22,fmt:v=>v.toFixed(1)+'%',xf:v=>v+'%',unit:'',rp:38});
+
+  // Frete
+  const fo=d.frete.F||0,ci=d.frete.C||0,tt=fo+ci;
+  document.getElementById('lf').innerHTML=`<div class="li"><span class="ld" style="background:${BLUE}"></span>FOB ${Math.round(fo/tt*100)}% (${fo})</div><div class="li"><span class="ld" style="background:${ACCENT}"></span>CIF ${Math.round(ci/tt*100)}% (${ci})</div>`;
+  charts.frt=new Chart(document.getElementById('c-frt'),{type:'doughnut',data:{labels:['FOB','CIF'],datasets:[{data:[fo,ci],backgroundColor:[BLUE,ACCENT],borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/tt*100)}%)`}},datalabels:{color:'#0f1117',font:{family:"'IBM Plex Sans',sans-serif",size:mobile?11:12,weight:'600'},formatter:(v)=>{const p=Math.round(v/tt*100);return p>5?p+'%':''}}}}});
+}
+
+function switchMonth(m){
+  window._curM=m;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.m===m));
+  renderKPIs(m);
+  renderRitmoTable(m);
+  renderCharts(m);
+}
+
+let resizeTimer;
+window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>renderCharts(window._curM),200);});
+document.getElementById('tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)switchMonth(t.dataset.m);});
+
+const MONTHS_ORDER=['JAN','FEV','MAR','ABR'];
+const latestMonth=MONTHS_ORDER.filter(m=>DATA[m]&&DATA[m].total_mes>0).pop()||'JAN';
+switchMonth(latestMonth);
+</script>
+</body>
+</html>
