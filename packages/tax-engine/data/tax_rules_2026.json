@@ -1,0 +1,128 @@
+{
+  "_meta": {
+    "description": "Fonte única da verdade das regras tributárias (spec §1.3.6, §5.2, §20). NUNCA hardcodar estes valores no código de cálculo.",
+    "year_valid": 2026,
+    "salario_minimo_ref": 1621.0,
+    "sources": [
+      "Portal do Empreendedor",
+      "Receita Federal / Comitê Gestor do Simples Nacional",
+      "LC 123/2006",
+      "LC 214/2025 (Reforma Tributária)"
+    ]
+  },
+  "rules": [
+    { "rule_key": "salario_minimo", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 1621.0, "source_url": "https://www.gov.br" },
+
+    { "rule_key": "mei.limite_anual", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 81000.0 },
+    { "rule_key": "mei.das.inss", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 81.05, "metadata": { "base": "5% do salário mínimo" } },
+    { "rule_key": "mei.das.iss", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 5.0 },
+    { "rule_key": "mei.das.icms", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 1.0 },
+    { "rule_key": "mei.das.inss_caminhoneiro", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 194.52, "metadata": { "base": "12% do salário mínimo" } },
+    { "rule_key": "mei.das.vencimento_dia", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 20 },
+    { "rule_key": "mei.das.multa_diaria_pct", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 0.0033 },
+    { "rule_key": "mei.das.multa_teto_pct", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 0.20 },
+
+    { "rule_key": "nanoempreendedor.limite_anual", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 40500.0 },
+    { "rule_key": "me.limite_anual", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 360000.0 },
+    { "rule_key": "epp.limite_anual", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 4800000.0 },
+
+    { "rule_key": "dasn.prazo", "year_valid": 2026, "valid_from": "2026-01-01", "value_text": "2026-05-31" },
+    { "rule_key": "dasn.multa_minima", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 50.0 },
+    { "rule_key": "dirpf.limite_rendimentos", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 33888.0, "metadata": { "obs": "regra base 2025; atualizar anualmente" } },
+
+    { "rule_key": "reforma.cbs.aliquota_teste", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 0.009 },
+    { "rule_key": "reforma.ibs.aliquota_teste", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 0.001 },
+    { "rule_key": "reforma.prazo_opcao_2027", "year_valid": 2026, "valid_from": "2026-01-01", "value_text": "2026-09-30" },
+    {
+      "rule_key": "reforma.cronograma",
+      "year_valid": 2026,
+      "valid_from": "2026-01-01",
+      "metadata": {
+        "2026": { "fase": "teste", "cbs": 0.009, "ibs": 0.001, "dentro_do_das": true, "erro_boa_fe_sem_multa": true },
+        "2027": { "fase": "cbs_efetiva", "pis_cofins": "extintos", "split_payment_b2b": true },
+        "2029_2033": { "fase": "transicao_ibs", "obs": "alíquotas sobem gradualmente" }
+      }
+    },
+
+    {
+      "rule_key": "simples.anexo_I",
+      "year_valid": 2026,
+      "valid_from": "2026-01-01",
+      "metadata": {
+        "descricao": "Comércio",
+        "faixas": [
+          { "faixa": 1, "de": 0, "ate": 180000, "aliquota": 0.04, "deducao": 0 },
+          { "faixa": 2, "de": 180000.01, "ate": 360000, "aliquota": 0.073, "deducao": 5940 },
+          { "faixa": 3, "de": 360000.01, "ate": 720000, "aliquota": 0.095, "deducao": 13860 },
+          { "faixa": 4, "de": 720000.01, "ate": 1800000, "aliquota": 0.107, "deducao": 22500 },
+          { "faixa": 5, "de": 1800000.01, "ate": 3600000, "aliquota": 0.143, "deducao": 87300 },
+          { "faixa": 6, "de": 3600000.01, "ate": 4800000, "aliquota": 0.19, "deducao": 378000 }
+        ]
+      }
+    },
+    {
+      "rule_key": "simples.anexo_II",
+      "year_valid": 2026,
+      "valid_from": "2026-01-01",
+      "metadata": {
+        "descricao": "Indústria",
+        "faixas": [
+          { "faixa": 1, "de": 0, "ate": 180000, "aliquota": 0.045, "deducao": 0 },
+          { "faixa": 2, "de": 180000.01, "ate": 360000, "aliquota": 0.078, "deducao": 5940 },
+          { "faixa": 3, "de": 360000.01, "ate": 720000, "aliquota": 0.10, "deducao": 13860 },
+          { "faixa": 4, "de": 720000.01, "ate": 1800000, "aliquota": 0.112, "deducao": 22500 },
+          { "faixa": 5, "de": 1800000.01, "ate": 3600000, "aliquota": 0.147, "deducao": 85500 },
+          { "faixa": 6, "de": 3600000.01, "ate": 4800000, "aliquota": 0.30, "deducao": 720000 }
+        ]
+      }
+    },
+    {
+      "rule_key": "simples.anexo_III",
+      "year_valid": 2026,
+      "valid_from": "2026-01-01",
+      "metadata": {
+        "descricao": "Serviços",
+        "faixas": [
+          { "faixa": 1, "de": 0, "ate": 180000, "aliquota": 0.06, "deducao": 0 },
+          { "faixa": 2, "de": 180000.01, "ate": 360000, "aliquota": 0.112, "deducao": 9360 },
+          { "faixa": 3, "de": 360000.01, "ate": 720000, "aliquota": 0.135, "deducao": 17640 },
+          { "faixa": 4, "de": 720000.01, "ate": 1800000, "aliquota": 0.16, "deducao": 35640 },
+          { "faixa": 5, "de": 1800000.01, "ate": 3600000, "aliquota": 0.21, "deducao": 125640 },
+          { "faixa": 6, "de": 3600000.01, "ate": 4800000, "aliquota": 0.33, "deducao": 648000 }
+        ]
+      }
+    },
+    {
+      "rule_key": "simples.anexo_IV",
+      "year_valid": 2026,
+      "valid_from": "2026-01-01",
+      "metadata": {
+        "descricao": "Serviços específicos",
+        "faixas": [
+          { "faixa": 1, "de": 0, "ate": 180000, "aliquota": 0.045, "deducao": 0 },
+          { "faixa": 2, "de": 180000.01, "ate": 360000, "aliquota": 0.09, "deducao": 8100 },
+          { "faixa": 3, "de": 360000.01, "ate": 720000, "aliquota": 0.102, "deducao": 12420 },
+          { "faixa": 4, "de": 720000.01, "ate": 1800000, "aliquota": 0.14, "deducao": 39780 },
+          { "faixa": 5, "de": 1800000.01, "ate": 3600000, "aliquota": 0.22, "deducao": 183780 },
+          { "faixa": 6, "de": 3600000.01, "ate": 4800000, "aliquota": 0.33, "deducao": 828000 }
+        ]
+      }
+    },
+    {
+      "rule_key": "simples.anexo_V",
+      "year_valid": 2026,
+      "valid_from": "2026-01-01",
+      "metadata": {
+        "descricao": "Serviços de maior valor agregado",
+        "faixas": [
+          { "faixa": 1, "de": 0, "ate": 180000, "aliquota": 0.155, "deducao": 0 },
+          { "faixa": 2, "de": 180000.01, "ate": 360000, "aliquota": 0.18, "deducao": 4500 },
+          { "faixa": 3, "de": 360000.01, "ate": 720000, "aliquota": 0.195, "deducao": 9900 },
+          { "faixa": 4, "de": 720000.01, "ate": 1800000, "aliquota": 0.205, "deducao": 17100 },
+          { "faixa": 5, "de": 1800000.01, "ate": 3600000, "aliquota": 0.23, "deducao": 62100 },
+          { "faixa": 6, "de": 3600000.01, "ate": 4800000, "aliquota": 0.305, "deducao": 540000 }
+        ]
+      }
+    }
+  ]
+}

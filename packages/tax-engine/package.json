@@ -1,0 +1,17 @@
+{
+  "name": "@copiloto/tax-engine",
+  "version": "0.1.0",
+  "description": "Motor tributário puro do Copiloto MEI & ME — DAS-MEI, Simples Nacional, limites, multa e Reforma. Nada hardcoded: tudo resolve via tax_rules.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "lint:no-hardcode": "node scripts/check-no-hardcode.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
