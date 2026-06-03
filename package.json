@@ -5,13 +5,15 @@
   "description": "Copiloto MEI & ME — plataforma SaaS de gestão fiscal, financeira e operacional para microempreendedores brasileiros.",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
-    "test": "npm test --workspace @copiloto/tax-engine",
-    "typecheck": "npm run typecheck --workspace @copiloto/tax-engine",
+    "test": "npm test --workspace @copiloto/tax-engine && npm test --workspace @copiloto/api",
+    "typecheck": "npm run typecheck --workspace @copiloto/tax-engine && npm run typecheck --workspace @copiloto/api",
     "lint:no-hardcode": "npm run lint:no-hardcode --workspace @copiloto/tax-engine",
     "seed:gen": "node db/seeds/generate.mjs",
+    "api:dev": "npm run dev --workspace @copiloto/api",
     "check": "npm run typecheck && npm run lint:no-hardcode && npm test"
   }
 }

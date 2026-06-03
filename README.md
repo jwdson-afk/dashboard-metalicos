@@ -17,8 +17,9 @@ a configuração versionada de regras e um dashboard de demonstração.
 
 | Camada | Entrega | Onde |
 |---|---|---|
-| **Motor tributário** (puro, testável) | DAS-MEI, DAS-Simples Nacional, monitor de limite, multa/juros, Reforma | `packages/tax-engine/` |
+| **Motor tributário** (puro, testável) | DAS-MEI, DAS-Simples Nacional, monitor de limite, multa/juros, Reforma, calendário fiscal e detectores | `packages/tax-engine/` |
 | **Fonte da verdade** (`tax_rules`) | Valores 2026 versionados por ano: INSS, ISS, ICMS, limites, anexos I–V, cronograma da Reforma | `packages/tax-engine/data/tax_rules_2026.json` |
+| **Backend (API + Agente)** | API REST, calendário fiscal, detectores, tools do Agente (§6.3) e loop de tool-calling com system prompt §6.4 | `apps/api/` |
 | **Schema do banco** | Todas as tabelas da spec §5 (identidade, financeiro, fiscal, notas, cobrança, eventos, auditoria) | `db/migrations/001_init.sql` |
 | **Seed SQL** | Gerado do JSON canônico (sem divergência) | `db/seeds/tax_rules_2026.sql` |
 | **Dashboard** | Visão geral, monitor de limite, calculadora DAS, Reforma e chat do Copiloto | `index.html` |
@@ -36,15 +37,35 @@ usadas) para gravação no `audit_log` — defensibilidade legal.
 ## Rodando
 
 ```bash
-npm install                 # instala workspaces
+npm install                 # instala todos os workspaces
 
-npm run check               # typecheck + guard anti-hardcode + testes
-npm test                    # só os testes do tax-engine (23 casos)
+npm run check               # typecheck + guard anti-hardcode + testes (42 casos)
+npm test                    # testes do tax-engine + da API
 npm run seed:gen            # regenera db/seeds/tax_rules_2026.sql do JSON canônico
+npm run api:dev             # sobe a API em http://localhost:3001
 ```
 
 O dashboard é um único `index.html` autocontido — abra direto no navegador
 (ou sirva com `python3 -m http.server`).
+
+### API (apps/api)
+
+Backend Fastify que expõe o tax-engine, o calendário e os detectores, além do Agente IA.
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `GET` | `/companies/:id/status` | Situação consolidada (regime, % do teto, próximo vencimento) |
+| `GET` | `/companies/:id/obligations?status=` | Obrigações fiscais |
+| `GET` | `/companies/:id/calendar` | Obrigações que o calendário geraria hoje (§7.4) |
+| `GET` | `/companies/:id/detectors` | Eventos disparados pelos detectores agora (§9) |
+| `GET` | `/companies/:id/agent/prompt` | System prompt §6.4 renderizado + catálogo de tools |
+| `POST` | `/companies/:id/agent/message` | Conversa com o Agente (requer `ANTHROPIC_API_KEY`) |
+| `POST` | `/companies/:id/tools/:tool` | Executa uma tool diretamente (ações confirmadas) |
+
+O **Agente** (`apps/api/src/agent/`) roda o loop de tool-calling da spec §6.2 com
+prompt caching. Sem `ANTHROPIC_API_KEY` ele fica indisponível e a rota responde
+`503` — coerente com o princípio "nunca inventa". As tools de cálculo delegam 100%
+ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 
 ### Casos de aceite cobertos (spec §19)
 
@@ -63,8 +84,15 @@ O dashboard é um único `index.html` autocontido — abra direto no navegador
 ```
 .
 ├── index.html                       # dashboard (demo offline)
+├── apps/api/                        # backend Fastify (API + Agente IA)
+│   ├── src/repo/                    #   repositório em memória (trocável por Postgres)
+│   ├── src/tools/                   #   tools do Agente (§6.3) + implementações
+│   ├── src/agent/                   #   system prompt §6.4 + loop de tool-calling §6.2
+│   ├── src/server.ts                #   rotas REST
+│   └── test/                        #   testes de tools e prompt (sem rede)
 ├── packages/tax-engine/             # motor tributário puro (TypeScript)
-│   ├── src/                         #   das-mei · das-simples · limits · penalty · reform · tax-rules
+│   ├── src/                         #   das-mei · das-simples · limits · penalty · reform
+│   │                                #   · calendar · detectors · tax-rules
 │   ├── data/tax_rules_2026.json     #   fonte da verdade (versionada)
 │   ├── test/                        #   casos de aceite (node:test + tsx)
 │   └── scripts/check-no-hardcode.mjs
@@ -77,9 +105,9 @@ O dashboard é um único `index.html` autocontido — abra direto no navegador
 
 ## Próximas fases (roadmap spec §18)
 
-- **Fase 1** — Geração automática de obrigações (calendário fiscal), Agente IA com
-  system prompt §6.4 + tools, dashboard + chat reais.
-- **Fase 2** — Emissor de NF (PlugNotas/Focus), `revenue_ledger`, `simulate_migration`.
+- **Fase 1** — ✅ calendário fiscal + detectores, ✅ Agente IA (system prompt §6.4 +
+  tools + loop §6.2). Falta: persistência real (Postgres), job agendado, canais de alerta.
+- **Fase 2** — Emissor de NF (PlugNotas/Focus), `revenue_ledger`, `simulate_migration` no UI.
 - **Fase 3** — Open Finance (Pluggy) + classificação PF×PJ, fluxo de caixa, DAS-Simples.
 - **Fase 4** — Cobrança Pix/boleto + régua + CRM.
 - **Fase 5** — Wizard de decisão de regime 2027, automação progressiva.

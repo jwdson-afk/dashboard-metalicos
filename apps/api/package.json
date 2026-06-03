@@ -1,0 +1,23 @@
+{
+  "name": "@copiloto/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend do Copiloto MEI & ME — API REST, calendário fiscal, detectores e Agente IA.",
+  "type": "module",
+  "scripts": {
+    "dev": "node --import tsx --watch src/server.ts",
+    "start": "node --import tsx src/server.ts",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.0",
+    "@copiloto/tax-engine": "*",
+    "fastify": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -4,6 +4,13 @@
   "description": "Motor tributário puro do Copiloto MEI & ME — DAS-MEI, Simples Nacional, limites, multa e Reforma. Nada hardcoded: tudo resolve via tax_rules.",
   "type": "module",
   "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
   "scripts": {
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
