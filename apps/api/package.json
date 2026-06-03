@@ -13,10 +13,12 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
     "@copiloto/tax-engine": "*",
-    "fastify": "^5.2.0"
+    "fastify": "^5.2.0",
+    "pg": "^8.13.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

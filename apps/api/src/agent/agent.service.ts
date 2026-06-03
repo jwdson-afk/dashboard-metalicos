@@ -39,7 +39,7 @@ export class AgentService {
       throw new Error('ANTHROPIC_API_KEY não configurada — o Agente IA está indisponível.');
     }
 
-    const ctx = buildPromptContext(companyId);
+    const ctx = await buildPromptContext(companyId);
     const system = renderSystemPrompt(ctx);
     const toolCalls: AgentResult['tool_calls'] = [];
 
@@ -71,9 +71,9 @@ export class AgentService {
         try {
           // Tools de ação não são executadas sem confirmação: devolvem um preview.
           if (actionTools.has(block.name)) {
-            output = { ...(callTool(block.name, block.input as Record<string, unknown>) as object), _note: 'AÇÃO pendente de confirmação do usuário.' };
+            output = { ...(await callTool(block.name, block.input as Record<string, unknown>) as object), _note: 'AÇÃO pendente de confirmação do usuário.' };
           } else {
-            output = callTool(block.name, block.input as Record<string, unknown>);
+            output = await callTool(block.name, block.input as Record<string, unknown>);
           }
         } catch (err) {
           output = { error: (err as Error).message };

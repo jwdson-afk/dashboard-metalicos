@@ -19,8 +19,11 @@ a configuração versionada de regras e um dashboard de demonstração.
 |---|---|---|
 | **Motor tributário** (puro, testável) | DAS-MEI, DAS-Simples Nacional, monitor de limite, multa/juros, Reforma, calendário fiscal, detectores e notas fiscais | `packages/tax-engine/` |
 | **Fonte da verdade** (`tax_rules`) | Valores 2026 versionados por ano: INSS, ISS, ICMS, limites, anexos I–V, cronograma da Reforma | `packages/tax-engine/data/tax_rules_2026.json` |
-| **Backend (API + Agente)** | API REST, calendário fiscal, detectores, tools do Agente (§6.3) e loop de tool-calling com system prompt §6.4 | `apps/api/` |
-| **Schema do banco** | Todas as tabelas da spec §5 (identidade, financeiro, fiscal, notas, cobrança, eventos, auditoria) | `db/migrations/001_init.sql` |
+| **Backend (API + Agente)** | API REST, tools do Agente (§6.3), loop de tool-calling §6.2, system prompt §6.4 | `apps/api/` |
+| **Persistência** | Interface `Repository` (async) com implementações em memória e PostgreSQL | `apps/api/src/repo/` |
+| **Jobs + alertas** | Agendador de varredura (§7.4/§9), outbox transacional (§14.2), humanização e canais (WhatsApp) | `apps/api/src/jobs`, `src/alerts` |
+| **Notas Fiscais** | Provedor de emissão (stub + Focus NFe) atrás de interface (§10) | `apps/api/src/nf/` |
+| **Schema do banco** | Tabelas da spec §5 + outbox/emissão (§14.2) | `db/migrations/` |
 | **Seed SQL** | Gerado do JSON canônico (sem divergência) | `db/seeds/tax_rules_2026.sql` |
 | **Dashboard** | Visão geral, monitor de limite, calculadora DAS, Reforma e chat do Copiloto | `index.html` |
 
@@ -39,10 +42,10 @@ usadas) para gravação no `audit_log` — defensibilidade legal.
 ```bash
 npm install                 # instala todos os workspaces
 
-npm run check               # typecheck + guard anti-hardcode + testes (52 casos)
+npm run check               # typecheck + guard anti-hardcode + testes (57 casos)
 npm test                    # testes do tax-engine + da API
 npm run seed:gen            # regenera db/seeds/tax_rules_2026.sql do JSON canônico
-npm run api:dev             # sobe a API em http://localhost:3001
+npm run api:dev             # sobe a API em http://localhost:3001 (+ agendador)
 ```
 
 O dashboard é um único `index.html` autocontido — abra direto no navegador
@@ -61,10 +64,39 @@ Backend Fastify que expõe o tax-engine, o calendário e os detectores, além do
 | `GET` | `/companies/:id/agent/prompt` | System prompt §6.4 renderizado + catálogo de tools |
 | `POST` | `/companies/:id/agent/message` | Conversa com o Agente (requer `ANTHROPIC_API_KEY`) |
 | `POST` | `/companies/:id/tools/:tool` | Executa uma tool diretamente (ações confirmadas) |
+| `POST` | `/jobs/run-cycle` | Roda um ciclo do agendador: varredura + despacho de alertas |
+| `POST` | `/jobs/dispatch` | Despacha só o outbox pendente |
 
 As tools incluem cálculo (`calculate_das_mei`, `check_limit_projection`,
 `explain_reform_impact`…) e **notas fiscais** (`validate_invoice` e a ação
 `issue_invoice`, §10) — todas acessíveis via `POST /companies/:id/tools/:tool`.
+
+#### Persistência, outbox e alertas
+
+A persistência é abstraída por uma interface `Repository` (assíncrona). Sem
+`DATABASE_URL`, usa **memória** (dev/demos/testes); com `DATABASE_URL`, ativa o
+**PostgreSQL** (`apps/api/src/repo/postgres.ts`, schema em `db/migrations/`).
+
+O **agendador** (`apps/api/src/jobs/`) roda em intervalo (`SCAN_INTERVAL_MS`,
+default 1h) uma varredura que: (1) gera as obrigações do calendário fiscal de
+forma idempotente (§7.4) e (2) roda os detectores e grava os eventos no **outbox
+transacional** com deduplicação (§14.2). O **despachante** (`apps/api/src/alerts/`)
+lê o outbox, humaniza cada evento em PT-BR e entrega pelos **canais** ativos
+(console por padrão; WhatsApp via `WHATSAPP_TOKEN`+`WHATSAPP_PHONE_ID`). Entrega
+*at-least-once*: o evento só é marcado como publicado após o envio.
+
+A emissão de NF passa por um **provedor** (`apps/api/src/nf/`): stub determinístico
+por padrão, ou Focus NFe via `NF_PROVIDER=focus`+`FOCUS_NFE_TOKEN`.
+
+| Variável | Efeito |
+|---|---|
+| `ANTHROPIC_API_KEY` | habilita o Agente IA (sem ela, `503`) |
+| `COPILOTO_AGENT_MODEL` | modelo do Agente (default Sonnet 4.6) |
+| `DATABASE_URL` | ativa o PostgreSQL no lugar da memória |
+| `NF_PROVIDER=focus` + `FOCUS_NFE_TOKEN` | emissor de NF real |
+| `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` | canal de alerta no WhatsApp |
+| `SCHEDULER_ENABLED=false` | não inicia o agendador no boot |
+| `SCAN_INTERVAL_MS` | intervalo do agendador (ms) |
 
 O **Agente** (`apps/api/src/agent/`) roda o loop de tool-calling da spec §6.2 com
 prompt caching. Sem `ANTHROPIC_API_KEY` ele fica indisponível e a rota responde
@@ -88,12 +120,15 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 ```
 .
 ├── index.html                       # dashboard (demo offline)
-├── apps/api/                        # backend Fastify (API + Agente IA)
-│   ├── src/repo/                    #   repositório em memória (trocável por Postgres)
+├── apps/api/                        # backend Fastify (API + Agente IA + jobs)
+│   ├── src/repo/                    #   Repository (interface) · memory · postgres
 │   ├── src/tools/                   #   tools do Agente (§6.3) + implementações
 │   ├── src/agent/                   #   system prompt §6.4 + loop de tool-calling §6.2
+│   ├── src/jobs/                    #   varredura diária (§7.4/§9) + agendador
+│   ├── src/alerts/                  #   outbox dispatcher · humanize · canais (§9.3/§14.2)
+│   ├── src/nf/                      #   provedor de NF (stub · Focus NFe)
 │   ├── src/server.ts                #   rotas REST
-│   └── test/                        #   testes de tools e prompt (sem rede)
+│   └── test/                        #   testes de tools, prompt e pipeline (sem rede)
 ├── packages/tax-engine/             # motor tributário puro (TypeScript)
 │   ├── src/                         #   das-mei · das-simples · limits · penalty · reform
 │   │                                #   · calendar · detectors · nota-fiscal · tax-rules
@@ -102,6 +137,7 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 │   └── scripts/check-no-hardcode.mjs
 └── db/
     ├── migrations/001_init.sql      # schema completo (spec §5)
+    ├── migrations/002_outbox.sql    # outbox transacional + log de emissão (§14.2)
     └── seeds/                       # seed de tax_rules (gerado)
 ```
 
@@ -110,10 +146,11 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 ## Próximas fases (roadmap spec §18)
 
 - **Fase 1** — ✅ calendário fiscal + detectores, ✅ Agente IA (system prompt §6.4 +
-  tools + loop §6.2). Falta: persistência real (Postgres), job agendado, canais de alerta.
+  tools + loop §6.2), ✅ persistência (interface + Postgres), ✅ job agendado +
+  outbox transacional, ✅ canais de alerta (console + WhatsApp estrutural).
 - **Fase 2** — ✅ módulo de Notas Fiscais (§10): roteamento NFS-e/NF-e, validação,
-  retenção de ISS, campos da Reforma, tools `validate_invoice`/`issue_invoice`.
-  Falta: integração com emissor real (PlugNotas/Focus) e `revenue_ledger`.
+  retenção de ISS, campos da Reforma, tools `validate_invoice`/`issue_invoice`,
+  ✅ provedor de emissão (stub + Focus NFe). Falta: `revenue_ledger`.
 - **Fase 3** — Open Finance (Pluggy) + classificação PF×PJ, fluxo de caixa, DAS-Simples.
 - **Fase 4** — Cobrança Pix/boleto + régua + CRM.
 - **Fase 5** — Wizard de decisão de regime 2027, automação progressiva.

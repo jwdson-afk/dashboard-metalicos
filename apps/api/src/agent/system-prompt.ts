@@ -5,7 +5,7 @@
  * tributários vêm SEMPRE de tax_rules (snapshot injetado) — o prompt nunca
  * carrega valores fixos no corpo do texto.
  */
-import { repo, type CompanyRecord } from '../repo/memory.js';
+import { getRepository, type CompanyRecord } from '../repo/index.js';
 import { tools } from '../tools/impl.js';
 import { taxRules2026 } from '@copiloto/tax-engine';
 
@@ -22,10 +22,10 @@ export interface PromptContext {
 }
 
 /** Monta o contexto real a partir do repositório + tax-engine. */
-export function buildPromptContext(companyId: string): PromptContext {
-  const company = repo.getCompany(companyId);
-  const status = tools.get_company_status({ company_id: companyId });
-  const pending = repo.getObligations(companyId, 'pending');
+export async function buildPromptContext(companyId: string): Promise<PromptContext> {
+  const company = await getRepository().getCompany(companyId);
+  const status = await tools.get_company_status({ company_id: companyId });
+  const pending = await getRepository().getObligations(companyId, 'pending');
 
   // Snapshot textual das regras vigentes (resumo legível para o modelo).
   const r = taxRules2026();

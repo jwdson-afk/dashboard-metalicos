@@ -5,8 +5,8 @@ process.env.COPILOTO_FAKE_NOW = '2026-06-17T12:00:00Z';
 const { buildPromptContext, renderSystemPrompt } = await import('../src/agent/system-prompt.js');
 const { AgentService } = await import('../src/agent/agent.service.js');
 
-test('system prompt injeta dados reais da empresa e snapshot de tax_rules', () => {
-  const ctx = buildPromptContext('demo-company');
+test('system prompt injeta dados reais da empresa e snapshot de tax_rules', async () => {
+  const ctx = await buildPromptContext('demo-company');
   const prompt = renderSystemPrompt(ctx);
   assert.match(prompt, /Marina Souza/);
   assert.match(prompt, /CNPJ 12\.345\.678\/0001-90/);
