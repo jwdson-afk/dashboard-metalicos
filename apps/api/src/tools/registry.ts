@@ -175,6 +175,39 @@ export const toolSchemas: ToolSchema[] = [
     },
   },
   {
+    name: 'create_charge',
+    description: 'AÇÃO: cria uma cobrança Pix ou boleto para um cliente. Requer confirmação do usuário.',
+    is_action: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        company_id: companyId,
+        amount: { type: 'number' },
+        method: { type: 'string', enum: ['pix', 'boleto'] },
+        due_date: { type: 'string', description: "Vencimento 'YYYY-MM-DD' (default: +3 dias)" },
+        customer_name: { type: 'string' },
+        description: { type: 'string' },
+      },
+      required: ['company_id', 'amount'],
+    },
+  },
+  {
+    name: 'list_charges',
+    description: 'Lista as cobranças da empresa, opcionalmente filtrando por status.',
+    is_action: false,
+    input_schema: {
+      type: 'object',
+      properties: { company_id: companyId, status: { type: 'string', enum: ['open', 'paid', 'overdue', 'canceled'] } },
+      required: ['company_id'],
+    },
+  },
+  {
+    name: 'list_customers',
+    description: 'Lista os clientes (CRM) da empresa com total comprado.',
+    is_action: false,
+    input_schema: { type: 'object', properties: { company_id: companyId }, required: ['company_id'] },
+  },
+  {
     name: 'generate_das_guia',
     description: 'AÇÃO: gera a guia do DAS com Pix copia-e-cola. Requer confirmação explícita do usuário.',
     is_action: true,

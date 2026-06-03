@@ -21,6 +21,7 @@ import {
 } from '@copiloto/tax-engine';
 import { getRepository } from '../repo/index.js';
 import { issueWithProvider } from '../nf/provider.js';
+import { getPaymentGateway, type ChargeMethod } from '../billing/gateway.js';
 
 const rules = () => taxRules2026();
 const NOW = () => new Date(process.env.COPILOTO_FAKE_NOW ?? new Date().toISOString());
@@ -207,6 +208,50 @@ export const tools = {
       mistura_pf_pj: { count: mistura.length, total: Math.round(mistura.reduce((s, t) => s + t.amount, 0) * 100) / 100 },
       revenue_12m: ledger.at(-1)?.revenue_12m ?? null,
     };
+  },
+
+  /** AÇÃO (§12): cria uma cobrança Pix/boleto via gateway e persiste. */
+  async create_charge(args: {
+    company_id: string;
+    amount: number;
+    method?: ChargeMethod;
+    due_date?: string;
+    customer_name?: string;
+    description?: string;
+  }) {
+    const c = await repo().getCompany(args.company_id);
+    const method = args.method ?? 'pix';
+    const dueDate = args.due_date ?? new Date(NOW().getTime() + 3 * 86400000).toISOString().slice(0, 10);
+    const created = await getPaymentGateway().createCharge({
+      company_cnpj: c.cnpj,
+      amount: args.amount,
+      method,
+      due_date: dueDate,
+      description: args.description,
+      customer_name: args.customer_name,
+    });
+    const charge = await repo().createCharge({
+      company_id: c.id,
+      customer_name: args.customer_name ?? null,
+      amount: args.amount,
+      method,
+      due_date: dueDate,
+      status: 'open',
+      pix_copia_cola: created.pix_copia_cola,
+      boleto_url: created.boleto_url,
+      dunning_step: 0,
+    });
+    return { requires_confirmation: true, charge_id: charge.id, method, amount: args.amount, due_date: dueDate, provider: created.provider, pix_copia_cola: created.pix_copia_cola, boleto_url: created.boleto_url };
+  },
+
+  /** Lista cobranças da empresa (§12). */
+  async list_charges(args: { company_id: string; status?: string }) {
+    return { charges: await repo().listCharges(args.company_id, args.status) };
+  },
+
+  /** CRM: clientes da empresa (§12). */
+  async list_customers(args: { company_id: string }) {
+    return { customers: await repo().getCustomers(args.company_id) };
   },
 
   /** Multa por atraso de uma obrigação (helper para o detector de DAS vencido). */

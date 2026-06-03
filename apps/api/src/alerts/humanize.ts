@@ -51,6 +51,14 @@ export function humanize(ev: EventRecord): AlertMessage {
       title = 'Dinheiro pessoal misturado com o da empresa';
       body = `Encontrei ${p.count} gasto(s) pessoal(is) saindo da conta da empresa (${brl(p.total)}). Misturar PF e PJ traz risco fiscal — vale separar. Quer que eu te mostre quais foram?`;
       break;
+    case 'charge.reminder':
+      title = 'Lembrete de cobrança a enviar';
+      body = `A cobrança de ${brl(p.amount)}${p.customer_name ? ` para ${p.customer_name}` : ''} vence em ${p.dias_para_vencer} dia(s) (${p.due_date}). Quer que eu mande o lembrete?`;
+      break;
+    case 'charge.overdue':
+      title = ev.severity === 'critical' ? 'Cobrança bem atrasada' : 'Cobrança vencida';
+      body = `A cobrança de ${brl(p.amount)}${p.customer_name ? ` de ${p.customer_name}` : ''} está ${p.dias_atraso} dia(s) em atraso (vencia em ${p.due_date}). Posso reenviar o Pix/boleto agora.`;
+      break;
   }
 
   return { company_id: ev.company_id, severity: ev.severity, title, body };

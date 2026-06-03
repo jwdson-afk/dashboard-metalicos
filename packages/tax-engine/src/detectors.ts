@@ -20,7 +20,9 @@ export type DomainEventType =
   | 'obligation.due_soon'
   | 'obligation.overdue'
   | 'dasn.due_soon'
-  | 'finance.mixed_pf_pj';
+  | 'finance.mixed_pf_pj'
+  | 'charge.reminder'
+  | 'charge.overdue';
 
 export type Severity = 'info' | 'warning' | 'critical';
 

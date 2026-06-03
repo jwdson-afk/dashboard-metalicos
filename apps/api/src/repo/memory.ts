@@ -11,6 +11,7 @@ import type {
   ObligationRecord,
   CustomerRecord,
   InvoiceRecord,
+  ChargeRecord,
   EventRecord,
   NewEvent,
 } from './types.js';
@@ -52,6 +53,7 @@ export class MemoryRepository implements Repository {
   private dedupe = new Set<string>();
   private ledger = new Map<string, LedgerEntry[]>();
   private txRefs = new Map<string, Set<string>>();
+  private charges: ChargeRecord[] = [];
 
   constructor(seed = true) {
     this.companies = seed ? [demoCompany] : [];
@@ -67,6 +69,19 @@ export class MemoryRepository implements Repository {
         { name: 'Ateliê Criativo', is_pj: true, total_purchased: 12100 },
         { name: 'Consumidor final', is_pj: false, total_purchased: 27540 },
       ]);
+      this.charges.push({
+        id: 'demo-charge-1',
+        company_id: demoCompany.id,
+        customer_name: 'Loja Bella Decor',
+        amount: 1200,
+        method: 'pix',
+        due_date: '2026-06-10',
+        status: 'open',
+        pix_copia_cola: '00020126...DEMO-CHG',
+        boleto_url: null,
+        dunning_step: 0,
+        created_at: '2026-06-01T00:00:00.000Z',
+      });
     }
   }
 
@@ -137,6 +152,29 @@ export class MemoryRepository implements Repository {
 
   async getLedger(companyId: string): Promise<LedgerEntry[]> {
     return this.ledger.get(companyId) ?? [];
+  }
+
+  async createCharge(charge: Omit<ChargeRecord, 'id' | 'created_at'>): Promise<ChargeRecord> {
+    const rec: ChargeRecord = { ...charge, id: randomUUID(), created_at: new Date().toISOString() };
+    this.charges.push(rec);
+    return rec;
+  }
+
+  async listCharges(companyId: string, status?: string): Promise<ChargeRecord[]> {
+    return this.charges.filter((c) => c.company_id === companyId && (!status || c.status === status));
+  }
+
+  async listOpenChargesAll(): Promise<ChargeRecord[]> {
+    return this.charges.filter((c) => c.status === 'open' || c.status === 'overdue');
+  }
+
+  async updateCharge(
+    companyId: string,
+    id: string,
+    patch: Partial<Pick<ChargeRecord, 'status' | 'dunning_step'>>,
+  ): Promise<void> {
+    const c = this.charges.find((x) => x.id === id && x.company_id === companyId);
+    if (c) Object.assign(c, patch);
   }
 
   async recordInvoice(inv: Omit<InvoiceRecord, 'id' | 'created_at'>): Promise<InvoiceRecord> {

@@ -60,6 +60,20 @@ export interface InvoiceRecord {
   created_at: string;
 }
 
+export interface ChargeRecord {
+  id: string;
+  company_id: string;
+  customer_name: string | null;
+  amount: number;
+  method: 'pix' | 'boleto';
+  due_date: string;
+  status: 'open' | 'paid' | 'overdue' | 'canceled';
+  pix_copia_cola: string | null;
+  boleto_url: string | null;
+  dunning_step: number;
+  created_at: string;
+}
+
 /** Evento de domínio persistido no outbox (§14.1, §14.2). */
 export interface EventRecord {
   id: string;
@@ -97,6 +111,12 @@ export interface Repository {
   saveClassifiedTransactions(companyId: string, txs: ClassifiedTx[]): Promise<{ inserted: number }>;
   upsertLedger(companyId: string, entries: LedgerEntry[]): Promise<void>;
   getLedger(companyId: string): Promise<LedgerEntry[]>;
+
+  // Cobrança / CRM (§12)
+  createCharge(charge: Omit<ChargeRecord, 'id' | 'created_at'>): Promise<ChargeRecord>;
+  listCharges(companyId: string, status?: string): Promise<ChargeRecord[]>;
+  listOpenChargesAll(): Promise<ChargeRecord[]>;
+  updateCharge(companyId: string, id: string, patch: Partial<Pick<ChargeRecord, 'status' | 'dunning_step'>>): Promise<void>;
 
   // Outbox de eventos (§14.2)
   appendEvent(ev: NewEvent): Promise<{ inserted: boolean; id: string }>;

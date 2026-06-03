@@ -16,6 +16,7 @@ import type {
   ObligationRecord,
   CustomerRecord,
   InvoiceRecord,
+  ChargeRecord,
   EventRecord,
   NewEvent,
 } from './types.js';
@@ -136,6 +137,36 @@ export class PostgresRepository implements Repository {
        FROM revenue_ledger WHERE company_id = $1 ORDER BY ref_year, ref_month`,
       [companyId],
     );
+  }
+
+  async createCharge(charge: Omit<ChargeRecord, 'id' | 'created_at'>): Promise<ChargeRecord> {
+    const [row] = await this.q<ChargeRecord>(
+      `INSERT INTO charges (company_id, customer_id, amount, method, due_date, status, pix_copia_cola, boleto_url, dunning_step)
+       VALUES ($1, NULL, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [charge.company_id, charge.amount, charge.method, charge.due_date, charge.status, charge.pix_copia_cola, charge.boleto_url, charge.dunning_step],
+    );
+    return row;
+  }
+
+  async listCharges(companyId: string, status?: string): Promise<ChargeRecord[]> {
+    if (status) {
+      return this.q<ChargeRecord>('SELECT * FROM charges WHERE company_id = $1 AND status = $2 ORDER BY due_date', [companyId, status]);
+    }
+    return this.q<ChargeRecord>('SELECT * FROM charges WHERE company_id = $1 ORDER BY due_date', [companyId]);
+  }
+
+  async listOpenChargesAll(): Promise<ChargeRecord[]> {
+    return this.q<ChargeRecord>("SELECT * FROM charges WHERE status IN ('open', 'overdue') ORDER BY due_date");
+  }
+
+  async updateCharge(companyId: string, id: string, patch: Partial<Pick<ChargeRecord, 'status' | 'dunning_step'>>): Promise<void> {
+    const sets: string[] = [];
+    const vals: unknown[] = [];
+    if (patch.status !== undefined) { vals.push(patch.status); sets.push(`status = $${vals.length}`); }
+    if (patch.dunning_step !== undefined) { vals.push(patch.dunning_step); sets.push(`dunning_step = $${vals.length}`); }
+    if (sets.length === 0) return;
+    vals.push(id, companyId);
+    await this.q(`UPDATE charges SET ${sets.join(', ')} WHERE id = $${vals.length - 1} AND company_id = $${vals.length}`, vals);
   }
 
   async recordInvoice(inv: Omit<InvoiceRecord, 'id' | 'created_at'>): Promise<InvoiceRecord> {

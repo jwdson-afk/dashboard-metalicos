@@ -24,6 +24,7 @@ a configuração versionada de regras e um dashboard de demonstração.
 | **Jobs + alertas** | Agendador de varredura (§7.4/§9), outbox transacional (§14.2), humanização e canais (WhatsApp) | `apps/api/src/jobs`, `src/alerts` |
 | **Notas Fiscais** | Provedor de emissão (stub + Focus NFe) atrás de interface (§10) | `apps/api/src/nf/` |
 | **Open Finance** | Provedor bancário (stub + Pluggy), sync que classifica PF×PJ e materializa o ledger (§11) | `apps/api/src/bank`, `src/jobs/sync-bank.ts` |
+| **Cobrança + CRM** | Gateway Pix/boleto (stub + Asaas), régua de cobrança (dunning) com eventos no outbox (§12) | `apps/api/src/billing`, `src/jobs/dunning.ts` |
 | **Schema do banco** | Tabelas da spec §5 + outbox/emissão (§14.2) | `db/migrations/` |
 | **Seed SQL** | Gerado do JSON canônico (sem divergência) | `db/seeds/tax_rules_2026.sql` |
 | **Dashboard** | Visão geral, monitor de limite, calculadora DAS, Reforma e chat do Copiloto | `index.html` |
@@ -43,7 +44,7 @@ usadas) para gravação no `audit_log` — defensibilidade legal.
 ```bash
 npm install                 # instala todos os workspaces
 
-npm run check               # typecheck + guard anti-hardcode + testes (73 casos)
+npm run check               # typecheck + guard anti-hardcode + testes (82 casos)
 npm test                    # testes do tax-engine + da API
 npm run seed:gen            # regenera db/seeds/tax_rules_2026.sql do JSON canônico
 npm run api:dev             # sobe a API em http://localhost:3001 (+ agendador)
@@ -68,11 +69,14 @@ Backend Fastify que expõe o tax-engine, o calendário e os detectores, além do
 | `POST` | `/jobs/run-cycle` | Roda um ciclo do agendador: varredura + despacho de alertas |
 | `POST` | `/jobs/dispatch` | Despacha só o outbox pendente |
 | `POST` | `/jobs/bank-sync` | Sincroniza Open Finance: extrato → classificação PF×PJ → ledger → eventos |
+| `POST` | `/jobs/dunning` | Roda a régua de cobrança: avança etapas e emite eventos |
 | `GET` | `/companies/:id/ledger` | Ledger de receita materializado (janela móvel 12m) |
+| `GET` | `/companies/:id/charges?status=` | Cobranças da empresa |
 
 As tools incluem cálculo (`calculate_das_mei`, `check_limit_projection`,
 `explain_reform_impact`…), **notas fiscais** (`validate_invoice`, `issue_invoice`, §10)
-e **financeiro** (`get_cashflow`, `classify_transaction`, §11) — todas acessíveis
+**financeiro** (`get_cashflow`, `classify_transaction`, §11) e **cobrança/CRM**
+(`create_charge`, `list_charges`, `list_customers`, §12) — todas acessíveis
 via `POST /companies/:id/tools/:tool`.
 
 #### Persistência, outbox e alertas
@@ -97,6 +101,11 @@ O **Open Finance** (`apps/api/src/bank/`, `src/jobs/sync-bank.ts`) busca o extra
 persiste de forma idempotente, **materializa o `revenue_ledger`** (janela móvel 12m)
 e emite no outbox o evento de **mistura PF/PJ** — a "separação sagrada" do produto.
 
+A **cobrança** (`apps/api/src/billing/`, `src/jobs/dunning.ts`) cria Pix/boleto via
+gateway (stub ou Asaas via `PAYMENT_GATEWAY=asaas`+`ASAAS_API_KEY`) e roda a **régua
+de cobrança** (`packages/tax-engine/src/dunning.ts`): lembrete D-3 e escalonamento
+após o vencimento, cada degrau disparando um evento único (dedupe por etapa).
+
 | Variável | Efeito |
 |---|---|
 | `ANTHROPIC_API_KEY` | habilita o Agente IA (sem ela, `503`) |
@@ -104,6 +113,7 @@ e emite no outbox o evento de **mistura PF/PJ** — a "separação sagrada" do p
 | `DATABASE_URL` | ativa o PostgreSQL no lugar da memória |
 | `NF_PROVIDER=focus` + `FOCUS_NFE_TOKEN` | emissor de NF real |
 | `BANK_PROVIDER=pluggy` + `PLUGGY_CLIENT_ID`/`SECRET` | Open Finance via Pluggy |
+| `PAYMENT_GATEWAY=asaas` + `ASAAS_API_KEY` | cobrança Pix/boleto via Asaas |
 | `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` | canal de alerta no WhatsApp |
 | `SCHEDULER_ENABLED=false` | não inicia o agendador no boot |
 | `SCAN_INTERVAL_MS` | intervalo do agendador (ms) |
@@ -134,16 +144,17 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 │   ├── src/repo/                    #   Repository (interface) · memory · postgres
 │   ├── src/tools/                   #   tools do Agente (§6.3) + implementações
 │   ├── src/agent/                   #   system prompt §6.4 + loop de tool-calling §6.2
-│   ├── src/jobs/                    #   varredura (§7.4/§9) · agendador · sync-bank (§11)
+│   ├── src/jobs/                    #   varredura · agendador · sync-bank · dunning
 │   ├── src/alerts/                  #   outbox dispatcher · humanize · canais (§9.3/§14.2)
 │   ├── src/nf/                      #   provedor de NF (stub · Focus NFe)
 │   ├── src/bank/                    #   provedor Open Finance (stub · Pluggy) (§11)
+│   ├── src/billing/                 #   gateway de pagamento (stub · Asaas) (§12)
 │   ├── src/server.ts                #   rotas REST
 │   └── test/                        #   testes de tools, prompt e pipeline (sem rede)
 ├── packages/tax-engine/             # motor tributário puro (TypeScript)
 │   ├── src/                         #   das-mei · das-simples · limits · penalty · reform
 │   │                                #   · calendar · detectors · nota-fiscal · classify
-│   │                                #   · ledger · tax-rules
+│   │                                #   · ledger · dunning · tax-rules
 │   ├── data/tax_rules_2026.json     #   fonte da verdade (versionada)
 │   ├── test/                        #   casos de aceite (node:test + tsx)
 │   └── scripts/check-no-hardcode.mjs
@@ -166,7 +177,8 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
   ✅ provedor de emissão (stub + Focus NFe). Falta: `revenue_ledger`.
 - **Fase 3** — ✅ Open Finance (provedor stub + Pluggy estrutural), ✅ classificação
   PF×PJ + detector de mistura, ✅ ledger de receita (janela móvel), ✅ fluxo de caixa.
-- **Fase 4** — Cobrança Pix/boleto + régua + CRM.
+- **Fase 4** — ✅ Cobrança Pix/boleto (gateway stub + Asaas), ✅ régua de cobrança
+  (dunning) com eventos no outbox, ✅ CRM (clientes + cobranças).
 - **Fase 5** — Wizard de decisão de regime 2027, automação progressiva.
 
 > Aviso: o produto orienta e automatiza, mas decisões de alto risco fiscal

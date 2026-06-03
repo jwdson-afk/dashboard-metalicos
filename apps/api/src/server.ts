@@ -13,6 +13,7 @@ import { AgentService } from './agent/agent.service.js';
 import { buildPromptContext, renderSystemPrompt } from './agent/system-prompt.js';
 import { runCycle } from './jobs/scheduler.js';
 import { runBankSync } from './jobs/sync-bank.js';
+import { runDunning } from './jobs/dunning.js';
 import { dispatchPending } from './alerts/dispatcher.js';
 
 export function buildServer() {
@@ -92,6 +93,16 @@ export function buildServer() {
 
   // Sincroniza o Open Finance (extrato → classificação → ledger → eventos).
   app.post('/jobs/bank-sync', async () => runBankSync(repo(), now()));
+
+  // Roda a régua de cobrança (§12): avança etapas e emite eventos no outbox.
+  app.post('/jobs/dunning', async () => runDunning(repo(), now()));
+
+  // Cobranças da empresa.
+  app.get('/companies/:id/charges', async (req) => {
+    const { id } = req.params as { id: string };
+    const { status } = req.query as { status?: string };
+    return callTool('list_charges', { company_id: id, status });
+  });
 
   // Ledger de receita materializado (§5.3).
   app.get('/companies/:id/ledger', async (req) => {
