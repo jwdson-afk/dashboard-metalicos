@@ -19,10 +19,11 @@ const FORBIDDEN = [
   '81.05', '81000', '40500', '360000', '4800000',
   '0.0033', '0.009', '0.001', '1621',
   '0.06', '0.112', '0.04', '0.073', // alíquotas de faixa
+  '0.05', // alíquota de retenção de ISS na nota
 ];
 
 // Arquivos puramente de cálculo (a camada tax-rules e money podem citar nada disso).
-const CALC_FILES = ['das-mei.ts', 'das-simples.ts', 'limits.ts', 'penalty.ts', 'reform.ts'];
+const CALC_FILES = ['das-mei.ts', 'das-simples.ts', 'limits.ts', 'penalty.ts', 'reform.ts', 'nota-fiscal.ts'];
 
 let violations = [];
 for (const file of readdirSync(srcDir)) {

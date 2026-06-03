@@ -30,6 +30,9 @@
     { "rule_key": "dasn.multa_minima", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 50.0 },
     { "rule_key": "dirpf.limite_rendimentos", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 33888.0, "metadata": { "obs": "regra base 2025; atualizar anualmente" } },
 
+    { "rule_key": "nf.iss.aliquota_retencao_padrao", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 0.05, "metadata": { "obs": "ISS retido na fonte por tomador PJ — varia por município/serviço; default configurável" } },
+    { "rule_key": "nf.valor_minimo", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 0.01 },
+
     { "rule_key": "reforma.cbs.aliquota_teste", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 0.009 },
     { "rule_key": "reforma.ibs.aliquota_teste", "year_valid": 2026, "valid_from": "2026-01-01", "value_numeric": 0.001 },
     { "rule_key": "reforma.prazo_opcao_2027", "year_valid": 2026, "valid_from": "2026-01-01", "value_text": "2026-09-30" },

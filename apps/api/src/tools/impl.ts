@@ -10,7 +10,11 @@ import {
   receita12m,
   explicarReforma,
   calcularMulta,
+  validarEmissao,
+  montarNota,
   type AnexoSimples,
+  type ItemNota,
+  type Tomador,
 } from '@copiloto/tax-engine';
 import { repo } from '../repo/memory.js';
 
@@ -106,6 +110,46 @@ export const tools = {
       composicao: r.composicao,
       pix_copia_cola: `00020126...DEMO-${c.cnpj.replace(/\D/g, '')}-${refPeriod}`, // stub do gateway
       rule_version: r.rule_version,
+    };
+  },
+
+  /** Valida uma nota antes de emitir (§10). Leitura, sem efeito. */
+  validate_invoice(args: { company_id: string; ref_period?: string; tomador: Tomador; itens: ItemNota[] }) {
+    const c = repo.getCompany(args.company_id);
+    return validarEmissao(
+      {
+        regime: c.regime,
+        is_iss_contributor: c.is_iss_contributor,
+        ref_period: args.ref_period ?? currentRefPeriod(),
+        tomador: args.tomador,
+        itens: args.itens,
+      },
+      rules(),
+    );
+  },
+
+  /** AÇÃO (§10): emite a nota fiscal. Requer confirmação; provedor externo é stub. */
+  issue_invoice(args: { company_id: string; ref_period?: string; tomador: Tomador; itens: ItemNota[] }) {
+    const c = repo.getCompany(args.company_id);
+    const nota = montarNota(
+      {
+        regime: c.regime,
+        is_iss_contributor: c.is_iss_contributor,
+        ref_period: args.ref_period ?? currentRefPeriod(),
+        tomador: args.tomador,
+        itens: args.itens,
+      },
+      rules(),
+    );
+    return {
+      requires_confirmation: true,
+      tipos: nota.tipos,
+      valor_total: nota.valor_total,
+      iss_retido: nota.iss_retido,
+      obrigatoria: nota.obrigatoria,
+      reforma: nota.reforma,
+      provider_ref: `DEMO-NF-${c.cnpj.replace(/\D/g, '')}-${Date.now()}`, // stub do emissor
+      rule_version: nota.rule_version,
     };
   },
 

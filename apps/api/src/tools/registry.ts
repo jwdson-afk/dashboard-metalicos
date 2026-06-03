@@ -75,6 +75,76 @@ export const toolSchemas: ToolSchema[] = [
     },
   },
   {
+    name: 'validate_invoice',
+    description: 'Valida os dados de uma nota fiscal antes de emitir (tomador, itens, valores). Não emite nada.',
+    is_action: false,
+    input_schema: {
+      type: 'object',
+      properties: {
+        company_id: companyId,
+        ref_period: { type: 'string' },
+        tomador: {
+          type: 'object',
+          properties: {
+            is_pj: { type: 'boolean' },
+            documento: { type: 'string', description: 'CPF ou CNPJ (apenas dígitos)' },
+            nome: { type: 'string' },
+          },
+          required: ['is_pj', 'documento', 'nome'],
+        },
+        itens: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              natureza: { type: 'string', enum: ['servico', 'produto'] },
+              descricao: { type: 'string' },
+              valor: { type: 'number' },
+              servico_sujeito_retencao_iss: { type: 'boolean' },
+            },
+            required: ['natureza', 'descricao', 'valor'],
+          },
+        },
+      },
+      required: ['company_id', 'tomador', 'itens'],
+    },
+  },
+  {
+    name: 'issue_invoice',
+    description: 'AÇÃO: emite a nota fiscal (NFS-e/NF-e) com retenção de ISS e campos da Reforma. Requer confirmação do usuário.',
+    is_action: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        company_id: companyId,
+        ref_period: { type: 'string' },
+        tomador: {
+          type: 'object',
+          properties: {
+            is_pj: { type: 'boolean' },
+            documento: { type: 'string' },
+            nome: { type: 'string' },
+          },
+          required: ['is_pj', 'documento', 'nome'],
+        },
+        itens: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              natureza: { type: 'string', enum: ['servico', 'produto'] },
+              descricao: { type: 'string' },
+              valor: { type: 'number' },
+              servico_sujeito_retencao_iss: { type: 'boolean' },
+            },
+            required: ['natureza', 'descricao', 'valor'],
+          },
+        },
+      },
+      required: ['company_id', 'tomador', 'itens'],
+    },
+  },
+  {
     name: 'generate_das_guia',
     description: 'AÇÃO: gera a guia do DAS com Pix copia-e-cola. Requer confirmação explícita do usuário.',
     is_action: true,

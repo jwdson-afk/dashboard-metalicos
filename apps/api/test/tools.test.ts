@@ -47,6 +47,36 @@ test('generate_das_guia (AÇÃO) devolve preview com pix e exige confirmação',
   assert.ok(g.pix_copia_cola.length > 0);
 });
 
+test('validate_invoice aprova nota válida e reprova inválida', () => {
+  const ok = callTool('validate_invoice', {
+    company_id: CID,
+    tomador: { is_pj: true, documento: '12345678000190', nome: 'Loja Bella Decor' },
+    itens: [{ natureza: 'servico', descricao: 'Peça artesanal', valor: 1000 }],
+  }) as any;
+  assert.equal(ok.ok, true);
+
+  const bad = callTool('validate_invoice', {
+    company_id: CID,
+    tomador: { is_pj: true, documento: '123', nome: '' },
+    itens: [{ natureza: 'servico', descricao: '', valor: 0 }],
+  }) as any;
+  assert.equal(bad.ok, false);
+  assert.ok(bad.erros.length >= 3);
+});
+
+test('issue_invoice (AÇÃO) calcula ISS retido + Reforma e exige confirmação', () => {
+  const nf = callTool('issue_invoice', {
+    company_id: CID,
+    tomador: { is_pj: true, documento: '12345678000190', nome: 'Loja Bella Decor' },
+    itens: [{ natureza: 'servico', descricao: 'Consultoria', valor: 1000, servico_sujeito_retencao_iss: true }],
+  }) as any;
+  assert.equal(nf.requires_confirmation, true);
+  assert.deepEqual(nf.tipos, ['nfse']);
+  assert.equal(nf.iss_retido, 50);
+  assert.equal(nf.reforma.cbs, 9);
+  assert.ok(nf.provider_ref.startsWith('DEMO-NF-'));
+});
+
 test('tool desconhecida lança erro', () => {
   assert.throws(() => callTool('inexistente', { company_id: CID }));
 });

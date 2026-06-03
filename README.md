@@ -17,7 +17,7 @@ a configuração versionada de regras e um dashboard de demonstração.
 
 | Camada | Entrega | Onde |
 |---|---|---|
-| **Motor tributário** (puro, testável) | DAS-MEI, DAS-Simples Nacional, monitor de limite, multa/juros, Reforma, calendário fiscal e detectores | `packages/tax-engine/` |
+| **Motor tributário** (puro, testável) | DAS-MEI, DAS-Simples Nacional, monitor de limite, multa/juros, Reforma, calendário fiscal, detectores e notas fiscais | `packages/tax-engine/` |
 | **Fonte da verdade** (`tax_rules`) | Valores 2026 versionados por ano: INSS, ISS, ICMS, limites, anexos I–V, cronograma da Reforma | `packages/tax-engine/data/tax_rules_2026.json` |
 | **Backend (API + Agente)** | API REST, calendário fiscal, detectores, tools do Agente (§6.3) e loop de tool-calling com system prompt §6.4 | `apps/api/` |
 | **Schema do banco** | Todas as tabelas da spec §5 (identidade, financeiro, fiscal, notas, cobrança, eventos, auditoria) | `db/migrations/001_init.sql` |
@@ -39,7 +39,7 @@ usadas) para gravação no `audit_log` — defensibilidade legal.
 ```bash
 npm install                 # instala todos os workspaces
 
-npm run check               # typecheck + guard anti-hardcode + testes (42 casos)
+npm run check               # typecheck + guard anti-hardcode + testes (52 casos)
 npm test                    # testes do tax-engine + da API
 npm run seed:gen            # regenera db/seeds/tax_rules_2026.sql do JSON canônico
 npm run api:dev             # sobe a API em http://localhost:3001
@@ -61,6 +61,10 @@ Backend Fastify que expõe o tax-engine, o calendário e os detectores, além do
 | `GET` | `/companies/:id/agent/prompt` | System prompt §6.4 renderizado + catálogo de tools |
 | `POST` | `/companies/:id/agent/message` | Conversa com o Agente (requer `ANTHROPIC_API_KEY`) |
 | `POST` | `/companies/:id/tools/:tool` | Executa uma tool diretamente (ações confirmadas) |
+
+As tools incluem cálculo (`calculate_das_mei`, `check_limit_projection`,
+`explain_reform_impact`…) e **notas fiscais** (`validate_invoice` e a ação
+`issue_invoice`, §10) — todas acessíveis via `POST /companies/:id/tools/:tool`.
 
 O **Agente** (`apps/api/src/agent/`) roda o loop de tool-calling da spec §6.2 com
 prompt caching. Sem `ANTHROPIC_API_KEY` ele fica indisponível e a rota responde
@@ -92,7 +96,7 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 │   └── test/                        #   testes de tools e prompt (sem rede)
 ├── packages/tax-engine/             # motor tributário puro (TypeScript)
 │   ├── src/                         #   das-mei · das-simples · limits · penalty · reform
-│   │                                #   · calendar · detectors · tax-rules
+│   │                                #   · calendar · detectors · nota-fiscal · tax-rules
 │   ├── data/tax_rules_2026.json     #   fonte da verdade (versionada)
 │   ├── test/                        #   casos de aceite (node:test + tsx)
 │   └── scripts/check-no-hardcode.mjs
@@ -107,7 +111,9 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 
 - **Fase 1** — ✅ calendário fiscal + detectores, ✅ Agente IA (system prompt §6.4 +
   tools + loop §6.2). Falta: persistência real (Postgres), job agendado, canais de alerta.
-- **Fase 2** — Emissor de NF (PlugNotas/Focus), `revenue_ledger`, `simulate_migration` no UI.
+- **Fase 2** — ✅ módulo de Notas Fiscais (§10): roteamento NFS-e/NF-e, validação,
+  retenção de ISS, campos da Reforma, tools `validate_invoice`/`issue_invoice`.
+  Falta: integração com emissor real (PlugNotas/Focus) e `revenue_ledger`.
 - **Fase 3** — Open Finance (Pluggy) + classificação PF×PJ, fluxo de caixa, DAS-Simples.
 - **Fase 4** — Cobrança Pix/boleto + régua + CRM.
 - **Fase 5** — Wizard de decisão de regime 2027, automação progressiva.

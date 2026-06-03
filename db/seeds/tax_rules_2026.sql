@@ -92,6 +92,18 @@ INSERT INTO tax_rules (rule_key, year_valid, valid_from, valid_until, value_nume
     metadata = EXCLUDED.metadata, valid_from = EXCLUDED.valid_from;
 
 INSERT INTO tax_rules (rule_key, year_valid, valid_from, valid_until, value_numeric, value_text, metadata, source_url) VALUES
+  ('nf.iss.aliquota_retencao_padrao', 2026, '2026-01-01', NULL, 0.05, NULL, '{"obs":"ISS retido na fonte por tomador PJ — varia por município/serviço; default configurável"}'::jsonb, NULL)
+  ON CONFLICT (rule_key, year_valid) DO UPDATE SET
+    value_numeric = EXCLUDED.value_numeric, value_text = EXCLUDED.value_text,
+    metadata = EXCLUDED.metadata, valid_from = EXCLUDED.valid_from;
+
+INSERT INTO tax_rules (rule_key, year_valid, valid_from, valid_until, value_numeric, value_text, metadata, source_url) VALUES
+  ('nf.valor_minimo', 2026, '2026-01-01', NULL, 0.01, NULL, NULL, NULL)
+  ON CONFLICT (rule_key, year_valid) DO UPDATE SET
+    value_numeric = EXCLUDED.value_numeric, value_text = EXCLUDED.value_text,
+    metadata = EXCLUDED.metadata, valid_from = EXCLUDED.valid_from;
+
+INSERT INTO tax_rules (rule_key, year_valid, valid_from, valid_until, value_numeric, value_text, metadata, source_url) VALUES
   ('reforma.cbs.aliquota_teste', 2026, '2026-01-01', NULL, 0.009, NULL, NULL, NULL)
   ON CONFLICT (rule_key, year_valid) DO UPDATE SET
     value_numeric = EXCLUDED.value_numeric, value_text = EXCLUDED.value_text,
