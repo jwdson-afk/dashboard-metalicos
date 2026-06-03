@@ -8,6 +8,7 @@
  *
  * Requer a dependência opcional `pg` (carregada dinamicamente).
  */
+import type { ClassifiedTx, LedgerEntry } from '@copiloto/tax-engine';
 import type {
   Repository,
   CompanyRecord,
@@ -95,6 +96,46 @@ export class PostgresRepository implements Repository {
       [companyId, ob.kind, ob.ref_period, ob.due_date, ob.amount, ob.status],
     );
     return { created: rows.length > 0 };
+  }
+
+  async saveClassifiedTransactions(companyId: string, txs: ClassifiedTx[]): Promise<{ inserted: number }> {
+    let inserted = 0;
+    for (const t of txs) {
+      const ref = t.external_ref ?? `${t.occurred_at}|${t.description}|${t.amount}|${t.direction}`;
+      const rows = await this.q(
+        `INSERT INTO transactions
+           (company_id, direction, amount, occurred_at, description, classification, counts_as_revenue, pf_pj_flag, source, external_ref)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open_finance', $9)
+         ON CONFLICT (company_id, external_ref) DO NOTHING
+         RETURNING id`,
+        [companyId, t.direction, t.amount, t.occurred_at, t.description, t.classification, t.counts_as_revenue, t.pf_pj_flag, ref],
+      );
+      if (rows.length > 0) inserted++;
+    }
+    return { inserted };
+  }
+
+  async upsertLedger(companyId: string, entries: LedgerEntry[]): Promise<void> {
+    for (const e of entries) {
+      await this.q(
+        `INSERT INTO revenue_ledger (company_id, ref_year, ref_month, revenue_month, revenue_ytd, revenue_12m, limit_reference, usage_pct)
+         VALUES ($1, $2, $3, $4, $5, $6, 0, 0)
+         ON CONFLICT (company_id, ref_year, ref_month)
+         DO UPDATE SET revenue_month = EXCLUDED.revenue_month, revenue_ytd = EXCLUDED.revenue_ytd,
+                       revenue_12m = EXCLUDED.revenue_12m, updated_at = now()`,
+        [companyId, e.ref_year, e.ref_month, e.revenue_month, e.revenue_ytd, e.revenue_12m],
+      );
+    }
+  }
+
+  async getLedger(companyId: string): Promise<LedgerEntry[]> {
+    return this.q<LedgerEntry>(
+      `SELECT ref_year, ref_month,
+              to_char(make_date(ref_year, ref_month, 1), 'YYYY-MM') AS ref_period,
+              revenue_month, revenue_ytd, revenue_12m
+       FROM revenue_ledger WHERE company_id = $1 ORDER BY ref_year, ref_month`,
+      [companyId],
+    );
   }
 
   async recordInvoice(inv: Omit<InvoiceRecord, 'id' | 'created_at'>): Promise<InvoiceRecord> {

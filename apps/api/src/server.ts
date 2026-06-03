@@ -12,6 +12,7 @@ import { toolSchemas } from './tools/registry.js';
 import { AgentService } from './agent/agent.service.js';
 import { buildPromptContext, renderSystemPrompt } from './agent/system-prompt.js';
 import { runCycle } from './jobs/scheduler.js';
+import { runBankSync } from './jobs/sync-bank.js';
 import { dispatchPending } from './alerts/dispatcher.js';
 
 export function buildServer() {
@@ -88,6 +89,15 @@ export function buildServer() {
 
   // Despacha apenas o outbox pendente.
   app.post('/jobs/dispatch', async () => dispatchPending(repo()));
+
+  // Sincroniza o Open Finance (extrato → classificação → ledger → eventos).
+  app.post('/jobs/bank-sync', async () => runBankSync(repo(), now()));
+
+  // Ledger de receita materializado (§5.3).
+  app.get('/companies/:id/ledger', async (req) => {
+    const { id } = req.params as { id: string };
+    return { ledger: await repo().getLedger(id) };
+  });
 
   return app;
 }

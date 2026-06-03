@@ -13,6 +13,8 @@ export * from './reform.js';
 export * from './calendar.js';
 export * from './detectors.js';
 export * from './nota-fiscal.js';
+export * from './classify.js';
+export * from './ledger.js';
 
 import { TaxRules } from './tax-rules.js';
 import seed2026 from '../data/tax_rules_2026.json' with { type: 'json' };

@@ -13,9 +13,11 @@ import {
   calcularMulta,
   validarEmissao,
   montarNota,
+  classifyTransaction,
   type AnexoSimples,
   type ItemNota,
   type Tomador,
+  type BankTx,
 } from '@copiloto/tax-engine';
 import { getRepository } from '../repo/index.js';
 import { issueWithProvider } from '../nf/provider.js';
@@ -181,6 +183,29 @@ export const tools = {
         das_mensal_estimado: simples.das,
       },
       observacao: 'Estimativa. A migração para ME exige validação contábil e a alíquota depende do anexo correto.',
+    };
+  },
+
+  /** Classifica uma transação avulsa PF×PJ (§11). Leitura, sem efeito. */
+  async classify_transaction(args: { company_id: string; transaction: BankTx }) {
+    return classifyTransaction(args.transaction);
+  },
+
+  /** Fluxo de caixa e separação PF×PJ a partir do extrato já classificado (§11). */
+  async get_cashflow(args: { company_id: string }) {
+    const txs = await repo().getTransactions(args.company_id);
+    const ledger = await repo().getLedger(args.company_id);
+    const inflow = txs.filter((t) => t.direction === 'inflow').reduce((s, t) => s + t.amount, 0);
+    const outflow = txs.filter((t) => t.direction === 'outflow').reduce((s, t) => s + t.amount, 0);
+    const receita = txs.filter((t) => t.counts_as_revenue).reduce((s, t) => s + t.amount, 0);
+    const mistura = txs.filter((t) => t.pf_pj_flag === 'mixed_alert');
+    return {
+      entradas: Math.round(inflow * 100) / 100,
+      saidas: Math.round(outflow * 100) / 100,
+      saldo: Math.round((inflow - outflow) * 100) / 100,
+      receita_reconhecida: Math.round(receita * 100) / 100,
+      mistura_pf_pj: { count: mistura.length, total: Math.round(mistura.reduce((s, t) => s + t.amount, 0) * 100) / 100 },
+      revenue_12m: ledger.at(-1)?.revenue_12m ?? null,
     };
   },
 

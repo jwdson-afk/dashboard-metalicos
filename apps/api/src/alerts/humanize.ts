@@ -47,6 +47,10 @@ export function humanize(ev: EventRecord): AlertMessage {
       title = 'Declaração anual (DASN) chegando';
       body = `A DASN de ${p.ref_period} vence em ${p.dias_restantes} dia(s), em ${p.due_date}. Eu cuido dela pra você — é rápido.`;
       break;
+    case 'finance.mixed_pf_pj':
+      title = 'Dinheiro pessoal misturado com o da empresa';
+      body = `Encontrei ${p.count} gasto(s) pessoal(is) saindo da conta da empresa (${brl(p.total)}). Misturar PF e PJ traz risco fiscal — vale separar. Quer que eu te mostre quais foram?`;
+      break;
   }
 
   return { company_id: ev.company_id, severity: ev.severity, title, body };

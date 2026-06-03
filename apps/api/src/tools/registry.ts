@@ -43,6 +43,36 @@ export const toolSchemas: ToolSchema[] = [
     },
   },
   {
+    name: 'get_cashflow',
+    description: 'Fluxo de caixa do período (entradas, saídas, saldo), receita reconhecida e mistura PF×PJ detectada.',
+    is_action: false,
+    input_schema: { type: 'object', properties: { company_id: companyId }, required: ['company_id'] },
+  },
+  {
+    name: 'classify_transaction',
+    description: 'Classifica uma transação bancária como receita PJ, despesa PJ, gasto pessoal (PF) ou ambígua.',
+    is_action: false,
+    input_schema: {
+      type: 'object',
+      properties: {
+        company_id: companyId,
+        transaction: {
+          type: 'object',
+          properties: {
+            description: { type: 'string' },
+            direction: { type: 'string', enum: ['inflow', 'outflow'] },
+            amount: { type: 'number' },
+            occurred_at: { type: 'string' },
+            counterparty_is_pj: { type: 'boolean' },
+            counterparty_document: { type: 'string' },
+          },
+          required: ['description', 'direction', 'amount', 'occurred_at'],
+        },
+      },
+      required: ['company_id', 'transaction'],
+    },
+  },
+  {
     name: 'check_limit_projection',
     description: 'Projeta quando a empresa estoura o teto do regime, com base na média de faturamento.',
     is_action: false,

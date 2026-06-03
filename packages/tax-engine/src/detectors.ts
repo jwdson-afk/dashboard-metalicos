@@ -19,7 +19,8 @@ export type DomainEventType =
   | 'limit.projected_overflow'
   | 'obligation.due_soon'
   | 'obligation.overdue'
-  | 'dasn.due_soon';
+  | 'dasn.due_soon'
+  | 'finance.mixed_pf_pj';
 
 export type Severity = 'info' | 'warning' | 'critical';
 
@@ -104,4 +105,33 @@ export function detectarObrigacoes(
     }
   }
   return events;
+}
+
+export interface MixedTxView {
+  description: string;
+  amount: number;
+  occurred_at: string;
+  pf_pj_flag: string; // 'pj' | 'pf' | 'mixed_alert' | 'unknown'
+}
+
+/**
+ * Detector de mistura PF/PJ (§1 "separação sagrada", §9.1). Emite UM evento
+ * agregado quando há gastos pessoais saindo da conta da empresa, com o total e
+ * a contagem — a base sagrada do produto: dinheiro PF e PJ não se misturam.
+ */
+export function detectarMistura(txs: MixedTxView[]): DomainEvent[] {
+  const mixed = txs.filter((t) => t.pf_pj_flag === 'mixed_alert');
+  if (mixed.length === 0) return [];
+  const total = mixed.reduce((s, t) => s + t.amount, 0);
+  return [
+    {
+      event_type: 'finance.mixed_pf_pj',
+      severity: 'warning',
+      payload: {
+        count: mixed.length,
+        total: Math.round(total * 100) / 100,
+        exemplos: mixed.slice(0, 3).map((t) => ({ description: t.description, amount: t.amount, occurred_at: t.occurred_at })),
+      },
+    },
+  ];
 }

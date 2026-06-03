@@ -3,6 +3,7 @@
  * Os dados espelham as tabelas da spec §5. O outbox é um array com dedupe.
  */
 import { randomUUID } from 'node:crypto';
+import type { ClassifiedTx, LedgerEntry } from '@copiloto/tax-engine';
 import type {
   Repository,
   CompanyRecord,
@@ -49,6 +50,8 @@ export class MemoryRepository implements Repository {
   private invoices: InvoiceRecord[] = [];
   private events: EventRecord[] = [];
   private dedupe = new Set<string>();
+  private ledger = new Map<string, LedgerEntry[]>();
+  private txRefs = new Map<string, Set<string>>();
 
   constructor(seed = true) {
     this.companies = seed ? [demoCompany] : [];
@@ -101,6 +104,39 @@ export class MemoryRepository implements Repository {
     list.push(ob);
     this.obligations.set(companyId, list);
     return { created: true };
+  }
+
+  async saveClassifiedTransactions(companyId: string, txs: ClassifiedTx[]): Promise<{ inserted: number }> {
+    const list = this.transactions.get(companyId) ?? [];
+    const refs = this.txRefs.get(companyId) ?? new Set<string>();
+    let inserted = 0;
+    for (const t of txs) {
+      const ref = t.external_ref ?? `${t.occurred_at}|${t.description}|${t.amount}|${t.direction}`;
+      if (refs.has(ref)) continue; // idempotência por external_ref
+      refs.add(ref);
+      list.push({
+        amount: t.amount,
+        occurred_at: t.occurred_at,
+        counts_as_revenue: t.counts_as_revenue,
+        description: t.description,
+        direction: t.direction,
+        classification: t.classification,
+        pf_pj_flag: t.pf_pj_flag,
+        external_ref: ref,
+      });
+      inserted++;
+    }
+    this.transactions.set(companyId, list);
+    this.txRefs.set(companyId, refs);
+    return { inserted };
+  }
+
+  async upsertLedger(companyId: string, entries: LedgerEntry[]): Promise<void> {
+    this.ledger.set(companyId, entries);
+  }
+
+  async getLedger(companyId: string): Promise<LedgerEntry[]> {
+    return this.ledger.get(companyId) ?? [];
   }
 
   async recordInvoice(inv: Omit<InvoiceRecord, 'id' | 'created_at'>): Promise<InvoiceRecord> {

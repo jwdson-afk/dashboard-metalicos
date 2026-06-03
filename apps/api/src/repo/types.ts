@@ -3,7 +3,7 @@
  * interface assíncrona — a implementação pode ser memória (dev/testes) ou
  * PostgreSQL (produção). Inclui o outbox transacional de eventos (§14.2).
  */
-import type { ActivityType, Regime } from '@copiloto/tax-engine';
+import type { ActivityType, Regime, ClassifiedTx, LedgerEntry } from '@copiloto/tax-engine';
 
 export interface CompanyRecord {
   id: string;
@@ -25,6 +25,11 @@ export interface TransactionRecord {
   amount: number;
   occurred_at: string;
   counts_as_revenue: boolean;
+  description?: string;
+  direction?: 'inflow' | 'outflow';
+  classification?: string;
+  pf_pj_flag?: string;
+  external_ref?: string;
 }
 
 export type ObligationStatus = 'pending' | 'generated' | 'paid' | 'overdue';
@@ -87,6 +92,11 @@ export interface Repository {
   // Escrita idempotente (calendário fiscal §7.4 — UNIQUE company/kind/ref_period)
   upsertObligation(companyId: string, ob: ObligationRecord): Promise<{ created: boolean }>;
   recordInvoice(inv: Omit<InvoiceRecord, 'id' | 'created_at'>): Promise<InvoiceRecord>;
+
+  // Open Finance (§11) — extrato classificado + ledger de receita (§5.3)
+  saveClassifiedTransactions(companyId: string, txs: ClassifiedTx[]): Promise<{ inserted: number }>;
+  upsertLedger(companyId: string, entries: LedgerEntry[]): Promise<void>;
+  getLedger(companyId: string): Promise<LedgerEntry[]>;
 
   // Outbox de eventos (§14.2)
   appendEvent(ev: NewEvent): Promise<{ inserted: boolean; id: string }>;

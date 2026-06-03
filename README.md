@@ -17,12 +17,13 @@ a configuração versionada de regras e um dashboard de demonstração.
 
 | Camada | Entrega | Onde |
 |---|---|---|
-| **Motor tributário** (puro, testável) | DAS-MEI, DAS-Simples Nacional, monitor de limite, multa/juros, Reforma, calendário fiscal, detectores e notas fiscais | `packages/tax-engine/` |
+| **Motor tributário** (puro, testável) | DAS-MEI, DAS-Simples, monitor de limite, multa/juros, Reforma, calendário, detectores, notas fiscais, classificação PF×PJ e ledger de receita | `packages/tax-engine/` |
 | **Fonte da verdade** (`tax_rules`) | Valores 2026 versionados por ano: INSS, ISS, ICMS, limites, anexos I–V, cronograma da Reforma | `packages/tax-engine/data/tax_rules_2026.json` |
 | **Backend (API + Agente)** | API REST, tools do Agente (§6.3), loop de tool-calling §6.2, system prompt §6.4 | `apps/api/` |
 | **Persistência** | Interface `Repository` (async) com implementações em memória e PostgreSQL | `apps/api/src/repo/` |
 | **Jobs + alertas** | Agendador de varredura (§7.4/§9), outbox transacional (§14.2), humanização e canais (WhatsApp) | `apps/api/src/jobs`, `src/alerts` |
 | **Notas Fiscais** | Provedor de emissão (stub + Focus NFe) atrás de interface (§10) | `apps/api/src/nf/` |
+| **Open Finance** | Provedor bancário (stub + Pluggy), sync que classifica PF×PJ e materializa o ledger (§11) | `apps/api/src/bank`, `src/jobs/sync-bank.ts` |
 | **Schema do banco** | Tabelas da spec §5 + outbox/emissão (§14.2) | `db/migrations/` |
 | **Seed SQL** | Gerado do JSON canônico (sem divergência) | `db/seeds/tax_rules_2026.sql` |
 | **Dashboard** | Visão geral, monitor de limite, calculadora DAS, Reforma e chat do Copiloto | `index.html` |
@@ -42,7 +43,7 @@ usadas) para gravação no `audit_log` — defensibilidade legal.
 ```bash
 npm install                 # instala todos os workspaces
 
-npm run check               # typecheck + guard anti-hardcode + testes (57 casos)
+npm run check               # typecheck + guard anti-hardcode + testes (73 casos)
 npm test                    # testes do tax-engine + da API
 npm run seed:gen            # regenera db/seeds/tax_rules_2026.sql do JSON canônico
 npm run api:dev             # sobe a API em http://localhost:3001 (+ agendador)
@@ -66,10 +67,13 @@ Backend Fastify que expõe o tax-engine, o calendário e os detectores, além do
 | `POST` | `/companies/:id/tools/:tool` | Executa uma tool diretamente (ações confirmadas) |
 | `POST` | `/jobs/run-cycle` | Roda um ciclo do agendador: varredura + despacho de alertas |
 | `POST` | `/jobs/dispatch` | Despacha só o outbox pendente |
+| `POST` | `/jobs/bank-sync` | Sincroniza Open Finance: extrato → classificação PF×PJ → ledger → eventos |
+| `GET` | `/companies/:id/ledger` | Ledger de receita materializado (janela móvel 12m) |
 
 As tools incluem cálculo (`calculate_das_mei`, `check_limit_projection`,
-`explain_reform_impact`…) e **notas fiscais** (`validate_invoice` e a ação
-`issue_invoice`, §10) — todas acessíveis via `POST /companies/:id/tools/:tool`.
+`explain_reform_impact`…), **notas fiscais** (`validate_invoice`, `issue_invoice`, §10)
+e **financeiro** (`get_cashflow`, `classify_transaction`, §11) — todas acessíveis
+via `POST /companies/:id/tools/:tool`.
 
 #### Persistência, outbox e alertas
 
@@ -88,12 +92,18 @@ lê o outbox, humaniza cada evento em PT-BR e entrega pelos **canais** ativos
 A emissão de NF passa por um **provedor** (`apps/api/src/nf/`): stub determinístico
 por padrão, ou Focus NFe via `NF_PROVIDER=focus`+`FOCUS_NFE_TOKEN`.
 
+O **Open Finance** (`apps/api/src/bank/`, `src/jobs/sync-bank.ts`) busca o extrato
+(stub ou Pluggy), **classifica cada transação PF×PJ** (`packages/tax-engine/src/classify.ts`),
+persiste de forma idempotente, **materializa o `revenue_ledger`** (janela móvel 12m)
+e emite no outbox o evento de **mistura PF/PJ** — a "separação sagrada" do produto.
+
 | Variável | Efeito |
 |---|---|
 | `ANTHROPIC_API_KEY` | habilita o Agente IA (sem ela, `503`) |
 | `COPILOTO_AGENT_MODEL` | modelo do Agente (default Sonnet 4.6) |
 | `DATABASE_URL` | ativa o PostgreSQL no lugar da memória |
 | `NF_PROVIDER=focus` + `FOCUS_NFE_TOKEN` | emissor de NF real |
+| `BANK_PROVIDER=pluggy` + `PLUGGY_CLIENT_ID`/`SECRET` | Open Finance via Pluggy |
 | `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_ID` | canal de alerta no WhatsApp |
 | `SCHEDULER_ENABLED=false` | não inicia o agendador no boot |
 | `SCAN_INTERVAL_MS` | intervalo do agendador (ms) |
@@ -124,20 +134,23 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 │   ├── src/repo/                    #   Repository (interface) · memory · postgres
 │   ├── src/tools/                   #   tools do Agente (§6.3) + implementações
 │   ├── src/agent/                   #   system prompt §6.4 + loop de tool-calling §6.2
-│   ├── src/jobs/                    #   varredura diária (§7.4/§9) + agendador
+│   ├── src/jobs/                    #   varredura (§7.4/§9) · agendador · sync-bank (§11)
 │   ├── src/alerts/                  #   outbox dispatcher · humanize · canais (§9.3/§14.2)
 │   ├── src/nf/                      #   provedor de NF (stub · Focus NFe)
+│   ├── src/bank/                    #   provedor Open Finance (stub · Pluggy) (§11)
 │   ├── src/server.ts                #   rotas REST
 │   └── test/                        #   testes de tools, prompt e pipeline (sem rede)
 ├── packages/tax-engine/             # motor tributário puro (TypeScript)
 │   ├── src/                         #   das-mei · das-simples · limits · penalty · reform
-│   │                                #   · calendar · detectors · nota-fiscal · tax-rules
+│   │                                #   · calendar · detectors · nota-fiscal · classify
+│   │                                #   · ledger · tax-rules
 │   ├── data/tax_rules_2026.json     #   fonte da verdade (versionada)
 │   ├── test/                        #   casos de aceite (node:test + tsx)
 │   └── scripts/check-no-hardcode.mjs
 └── db/
     ├── migrations/001_init.sql      # schema completo (spec §5)
     ├── migrations/002_outbox.sql    # outbox transacional + log de emissão (§14.2)
+    ├── migrations/003_open_finance.sql # idempotência da sincronização bancária (§11)
     └── seeds/                       # seed de tax_rules (gerado)
 ```
 
@@ -151,7 +164,8 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 - **Fase 2** — ✅ módulo de Notas Fiscais (§10): roteamento NFS-e/NF-e, validação,
   retenção de ISS, campos da Reforma, tools `validate_invoice`/`issue_invoice`,
   ✅ provedor de emissão (stub + Focus NFe). Falta: `revenue_ledger`.
-- **Fase 3** — Open Finance (Pluggy) + classificação PF×PJ, fluxo de caixa, DAS-Simples.
+- **Fase 3** — ✅ Open Finance (provedor stub + Pluggy estrutural), ✅ classificação
+  PF×PJ + detector de mistura, ✅ ledger de receita (janela móvel), ✅ fluxo de caixa.
 - **Fase 4** — Cobrança Pix/boleto + régua + CRM.
 - **Fase 5** — Wizard de decisão de regime 2027, automação progressiva.
 
