@@ -54,9 +54,9 @@ test('create_charge (AÇÃO) cria e persiste cobrança', async () => {
   const { callTool } = await import('../src/tools/impl.js');
 
   const created = (await callTool('create_charge', {
-    company_id: 'demo-company', amount: 750, method: 'pix', customer_name: 'Ateliê Criativo',
+    company_id: 'demo-company', amount: 750, method: 'pix', customer_name: 'Ateliê Criativo', confirm: true,
   })) as any;
-  assert.equal(created.requires_confirmation, true);
+  assert.equal(created.executed, true);
   assert.ok(created.pix_copia_cola);
 
   const list = (await callTool('list_charges', { company_id: 'demo-company', status: 'open' })) as any;

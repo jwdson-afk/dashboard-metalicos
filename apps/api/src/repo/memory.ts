@@ -4,6 +4,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import type { ClassifiedTx, LedgerEntry } from '@copiloto/tax-engine';
+import { DEFAULT_POLICY, type AutomationPolicy } from '../automation.js';
 import type {
   Repository,
   CompanyRecord,
@@ -54,6 +55,7 @@ export class MemoryRepository implements Repository {
   private ledger = new Map<string, LedgerEntry[]>();
   private txRefs = new Map<string, Set<string>>();
   private charges: ChargeRecord[] = [];
+  private policies = new Map<string, AutomationPolicy>();
 
   constructor(seed = true) {
     this.companies = seed ? [demoCompany] : [];
@@ -175,6 +177,16 @@ export class MemoryRepository implements Repository {
   ): Promise<void> {
     const c = this.charges.find((x) => x.id === id && x.company_id === companyId);
     if (c) Object.assign(c, patch);
+  }
+
+  async getAutomationPolicy(companyId: string): Promise<AutomationPolicy> {
+    return this.policies.get(companyId) ?? { ...DEFAULT_POLICY };
+  }
+
+  async setAutomationPolicy(companyId: string, patch: Partial<AutomationPolicy>): Promise<AutomationPolicy> {
+    const next = { ...(await this.getAutomationPolicy(companyId)), ...patch };
+    this.policies.set(companyId, next);
+    return next;
   }
 
   async recordInvoice(inv: Omit<InvoiceRecord, 'id' | 'created_at'>): Promise<InvoiceRecord> {

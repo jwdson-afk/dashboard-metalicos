@@ -9,6 +9,7 @@
  * Requer a dependência opcional `pg` (carregada dinamicamente).
  */
 import type { ClassifiedTx, LedgerEntry } from '@copiloto/tax-engine';
+import { DEFAULT_POLICY, type AutomationPolicy } from '../automation.js';
 import type {
   Repository,
   CompanyRecord,
@@ -167,6 +168,24 @@ export class PostgresRepository implements Repository {
     if (sets.length === 0) return;
     vals.push(id, companyId);
     await this.q(`UPDATE charges SET ${sets.join(', ')} WHERE id = $${vals.length - 1} AND company_id = $${vals.length}`, vals);
+  }
+
+  async getAutomationPolicy(companyId: string): Promise<AutomationPolicy> {
+    const [row] = await this.q<{ policy: AutomationPolicy }>(
+      'SELECT policy FROM automation_policies WHERE company_id = $1',
+      [companyId],
+    );
+    return { ...DEFAULT_POLICY, ...(row?.policy ?? {}) };
+  }
+
+  async setAutomationPolicy(companyId: string, patch: Partial<AutomationPolicy>): Promise<AutomationPolicy> {
+    const next = { ...(await this.getAutomationPolicy(companyId)), ...patch };
+    await this.q(
+      `INSERT INTO automation_policies (company_id, policy) VALUES ($1, $2)
+       ON CONFLICT (company_id) DO UPDATE SET policy = EXCLUDED.policy, updated_at = now()`,
+      [companyId, JSON.stringify(next)],
+    );
+    return next;
   }
 
   async recordInvoice(inv: Omit<InvoiceRecord, 'id' | 'created_at'>): Promise<InvoiceRecord> {

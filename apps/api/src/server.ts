@@ -104,6 +104,22 @@ export function buildServer() {
     return callTool('list_charges', { company_id: id, status });
   });
 
+  // Wizard de decisão de regime 2027 (§13.2).
+  app.get('/companies/:id/regime-advice', async (req) => {
+    const { id } = req.params as { id: string };
+    return callTool('recommend_regime', { company_id: id });
+  });
+
+  // Automação progressiva: ler/ajustar níveis de autonomia (§6.5).
+  app.get('/companies/:id/automation', async (req) => {
+    const { id } = req.params as { id: string };
+    return callTool('get_automation', { company_id: id });
+  });
+  app.put('/companies/:id/automation', async (req) => {
+    const { id } = req.params as { id: string };
+    return callTool('set_automation', { company_id: id, policy: (req.body ?? {}) as Record<string, unknown> });
+  });
+
   // Ledger de receita materializado (§5.3).
   app.get('/companies/:id/ledger', async (req) => {
     const { id } = req.params as { id: string };

@@ -170,6 +170,7 @@ export const toolSchemas: ToolSchema[] = [
             required: ['natureza', 'descricao', 'valor'],
           },
         },
+        confirm: { type: 'boolean', description: 'true = emitir; ausente/false = apenas prever (modo assistido)' },
       },
       required: ['company_id', 'tomador', 'itens'],
     },
@@ -187,6 +188,7 @@ export const toolSchemas: ToolSchema[] = [
         due_date: { type: 'string', description: "Vencimento 'YYYY-MM-DD' (default: +3 dias)" },
         customer_name: { type: 'string' },
         description: { type: 'string' },
+        confirm: { type: 'boolean', description: 'true = executar; ausente/false = apenas prever (modo assistido)' },
       },
       required: ['company_id', 'amount'],
     },
@@ -206,6 +208,34 @@ export const toolSchemas: ToolSchema[] = [
     description: 'Lista os clientes (CRM) da empresa com total comprado.',
     is_action: false,
     input_schema: { type: 'object', properties: { company_id: companyId }, required: ['company_id'] },
+  },
+  {
+    name: 'recommend_regime',
+    description: 'Wizard de decisão de regime para a Reforma 2027: recomenda manter MEI, migrar para ME, Simples comum ou Simples Híbrido, com motivos e prazo.',
+    is_action: false,
+    input_schema: { type: 'object', properties: { company_id: companyId }, required: ['company_id'] },
+  },
+  {
+    name: 'get_automation',
+    description: 'Mostra o nível de autonomia configurado por ação (manual/assisted/autonomous).',
+    is_action: false,
+    input_schema: { type: 'object', properties: { company_id: companyId }, required: ['company_id'] },
+  },
+  {
+    name: 'set_automation',
+    description: 'Ajusta o nível de autonomia por ação. Define quanto o Copiloto pode fazer sozinho.',
+    is_action: false,
+    input_schema: {
+      type: 'object',
+      properties: {
+        company_id: companyId,
+        policy: {
+          type: 'object',
+          description: 'Mapa ação→nível, ex.: { "create_charge": "autonomous" }',
+        },
+      },
+      required: ['company_id', 'policy'],
+    },
   },
   {
     name: 'generate_das_guia',

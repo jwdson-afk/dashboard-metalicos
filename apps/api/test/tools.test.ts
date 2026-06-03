@@ -64,16 +64,23 @@ test('validate_invoice aprova nota válida e reprova inválida', async () => {
   assert.ok(bad.erros.length >= 3);
 });
 
-test('issue_invoice (AÇÃO) calcula ISS retido + Reforma, emite via provedor e exige confirmação', async () => {
-  const nf = (await callTool('issue_invoice', {
+test('issue_invoice (AÇÃO) calcula ISS retido + Reforma e emite via provedor quando confirmado', async () => {
+  const args = {
     company_id: CID,
     tomador: { is_pj: true, documento: '12345678000190', nome: 'Loja Bella Decor' },
     itens: [{ natureza: 'servico', descricao: 'Consultoria', valor: 1000, servico_sujeito_retencao_iss: true }],
-  })) as any;
-  assert.equal(nf.requires_confirmation, true);
-  assert.deepEqual(nf.tipos, ['nfse']);
-  assert.equal(nf.iss_retido, 50);
-  assert.equal(nf.reforma.cbs, 9);
+  };
+  // Modo assistido: apenas prevê, com o cálculo completo.
+  const preview = (await callTool('issue_invoice', args)) as any;
+  assert.equal(preview.executed, false);
+  assert.equal(preview.requires_confirmation, true);
+  assert.deepEqual(preview.tipos, ['nfse']);
+  assert.equal(preview.iss_retido, 50);
+  assert.equal(preview.reforma.cbs, 9);
+
+  // Confirmado: emite via provedor.
+  const nf = (await callTool('issue_invoice', { ...args, confirm: true })) as any;
+  assert.equal(nf.executed, true);
   assert.equal(nf.provider, 'stub');
   assert.ok(nf.provider_ref.startsWith('DEMO-NF-'));
 });

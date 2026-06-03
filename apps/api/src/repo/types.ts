@@ -4,6 +4,7 @@
  * PostgreSQL (produção). Inclui o outbox transacional de eventos (§14.2).
  */
 import type { ActivityType, Regime, ClassifiedTx, LedgerEntry } from '@copiloto/tax-engine';
+import type { AutomationPolicy } from '../automation.js';
 
 export interface CompanyRecord {
   id: string;
@@ -117,6 +118,10 @@ export interface Repository {
   listCharges(companyId: string, status?: string): Promise<ChargeRecord[]>;
   listOpenChargesAll(): Promise<ChargeRecord[]>;
   updateCharge(companyId: string, id: string, patch: Partial<Pick<ChargeRecord, 'status' | 'dunning_step'>>): Promise<void>;
+
+  // Automação progressiva (§6.5) — nível de autonomia por ação
+  getAutomationPolicy(companyId: string): Promise<AutomationPolicy>;
+  setAutomationPolicy(companyId: string, patch: Partial<AutomationPolicy>): Promise<AutomationPolicy>;
 
   // Outbox de eventos (§14.2)
   appendEvent(ev: NewEvent): Promise<{ inserted: boolean; id: string }>;

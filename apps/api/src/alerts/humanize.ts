@@ -59,6 +59,10 @@ export function humanize(ev: EventRecord): AlertMessage {
       title = ev.severity === 'critical' ? 'Cobrança bem atrasada' : 'Cobrança vencida';
       body = `A cobrança de ${brl(p.amount)}${p.customer_name ? ` de ${p.customer_name}` : ''} está ${p.dias_atraso} dia(s) em atraso (vencia em ${p.due_date}). Posso reenviar o Pix/boleto agora.`;
       break;
+    case 'reform.decision_due_soon':
+      title = 'Decisão de regime 2027 se aproximando';
+      body = `Faltam ${p.dias_restantes} dia(s) (até ${p.prazo}) para você escolher como vai recolher IBS e CBS a partir de 2027. Posso rodar o comparativo e recomendar o melhor caminho pra você.`;
+      break;
   }
 
   return { company_id: ev.company_id, severity: ev.severity, title, body };

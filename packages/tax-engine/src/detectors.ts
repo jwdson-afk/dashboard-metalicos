@@ -22,7 +22,8 @@ export type DomainEventType =
   | 'dasn.due_soon'
   | 'finance.mixed_pf_pj'
   | 'charge.reminder'
-  | 'charge.overdue';
+  | 'charge.overdue'
+  | 'reform.decision_due_soon';
 
 export type Severity = 'info' | 'warning' | 'critical';
 
@@ -134,6 +135,30 @@ export function detectarMistura(txs: MixedTxView[]): DomainEvent[] {
         total: Math.round(total * 100) / 100,
         exemplos: mixed.slice(0, 3).map((t) => ({ description: t.description, amount: t.amount, occurred_at: t.occurred_at })),
       },
+    },
+  ];
+}
+
+export interface ReformDecisionView {
+  prazo_opcao: string;  // 'YYYY-MM-DD' (de tax_rules)
+  aplicavel: boolean;   // a empresa precisa decidir? (ME/EPP ou MEI projetado a migrar)
+  ja_decidiu: boolean;
+}
+
+/**
+ * Detector do prazo de decisão de regime 2027 (§13.2). Avisa quando faltam ≤60
+ * dias para o prazo de opção e a empresa ainda não decidiu — janela para o
+ * wizard agir antes que a escolha vire urgência.
+ */
+export function detectarPrazoReforma(view: ReformDecisionView, today: Date): DomainEvent[] {
+  if (!view.aplicavel || view.ja_decidiu) return [];
+  const dias = daysBetween(today, new Date(view.prazo_opcao));
+  if (dias < 0 || dias > 60) return [];
+  return [
+    {
+      event_type: 'reform.decision_due_soon',
+      severity: 'warning',
+      payload: { prazo: view.prazo_opcao, dias_restantes: dias },
     },
   ];
 }

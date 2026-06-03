@@ -16,6 +16,7 @@ import {
   gerarObrigacoes,
   detectarLimite,
   detectarObrigacoes,
+  detectarPrazoReforma,
   type DomainEvent,
 } from '@copiloto/tax-engine';
 import type { Repository, ObligationRecord } from '../repo/types.js';
@@ -57,7 +58,21 @@ export async function runDailyScan(repo: Repository, now: Date): Promise<ScanRes
       rules,
     );
     const obligations = (await repo.getObligations(c.id)).map((o) => ({ ...o }));
-    const events: DomainEvent[] = [...detectarLimite(status), ...detectarObrigacoes(obligations, now)];
+
+    // Decisão de regime 2027: aplicável a ME/EPP, ou a MEI projetado a estourar o teto.
+    const meiLimite = rules.numeric('mei.limite_anual', now.getUTCFullYear());
+    const mediaMensal = rev12 / 12;
+    const projetado = rev12 + mediaMensal * 6;
+    const aplicavelReforma = c.regime !== 'mei' ? true : projetado > meiLimite;
+
+    const events: DomainEvent[] = [
+      ...detectarLimite(status),
+      ...detectarObrigacoes(obligations, now),
+      ...detectarPrazoReforma(
+        { prazo_opcao: rules.text('reforma.prazo_opcao_2027', now.getUTCFullYear()), aplicavel: aplicavelReforma, ja_decidiu: false },
+        now,
+      ),
+    ];
 
     for (const ev of events) {
       const { inserted } = await repo.appendEvent({

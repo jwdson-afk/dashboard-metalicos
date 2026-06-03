@@ -14,6 +14,7 @@ import {
   validarEmissao,
   montarNota,
   classifyTransaction,
+  recomendarRegime,
   type AnexoSimples,
   type ItemNota,
   type Tomador,
@@ -22,10 +23,26 @@ import {
 import { getRepository } from '../repo/index.js';
 import { issueWithProvider } from '../nf/provider.js';
 import { getPaymentGateway, type ChargeMethod } from '../billing/gateway.js';
+import { shouldExecute, type AutomatedAction, type AutomationPolicy } from '../automation.js';
 
 const rules = () => taxRules2026();
 const NOW = () => new Date(process.env.COPILOTO_FAKE_NOW ?? new Date().toISOString());
 const repo = () => getRepository();
+
+/** Política de automação decide: executar agora ou só prever para confirmação. */
+async function decide(companyId: string, action: AutomatedAction, confirmed: boolean): Promise<boolean> {
+  const policy = await repo().getAutomationPolicy(companyId);
+  return shouldExecute(policy[action], confirmed);
+}
+
+/** Fatia do faturamento destinada a clientes PJ (CRM), para o wizard de regime. */
+async function b2bShare(companyId: string): Promise<number> {
+  const customers = await repo().getCustomers(companyId);
+  const total = customers.reduce((s, c) => s + c.total_purchased, 0);
+  if (total === 0) return 0;
+  const pj = customers.filter((c) => c.is_pj).reduce((s, c) => s + c.total_purchased, 0);
+  return pj / total;
+}
 
 function currentRefPeriod(d = NOW()): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
@@ -131,37 +148,36 @@ export const tools = {
   },
 
   /**
-   * AÇÃO (§10): emite a nota fiscal via provedor (PlugNotas/Focus ou stub),
-   * persiste o registro e devolve o preview de confirmação.
+   * AÇÃO (§10): emite a nota fiscal. Em modo assistido devolve o preview (sem
+   * efeito colateral); só emite via provedor e persiste quando confirmado ou
+   * em modo autônomo. O cálculo da nota é puro e sempre mostrado.
    */
-  async issue_invoice(args: { company_id: string; ref_period?: string; tomador: Tomador; itens: ItemNota[] }) {
+  async issue_invoice(args: { company_id: string; ref_period?: string; tomador: Tomador; itens: ItemNota[]; confirm?: boolean }) {
     const c = await repo().getCompany(args.company_id);
     const refPeriod = args.ref_period ?? currentRefPeriod();
     const nota = montarNota(
       { regime: c.regime, is_iss_contributor: c.is_iss_contributor, ref_period: refPeriod, tomador: args.tomador, itens: args.itens },
       rules(),
     );
-    const emitted = await issueWithProvider(c, refPeriod, nota);
-    await repo().recordInvoice({
-      company_id: c.id,
-      ref_period: refPeriod,
-      tipos: nota.tipos,
-      valor_total: nota.valor_total,
-      iss_retido: nota.iss_retido,
-      provider_ref: emitted.provider_ref,
-      status: emitted.status,
-    });
-    return {
-      requires_confirmation: true,
+    const base = {
       tipos: nota.tipos,
       valor_total: nota.valor_total,
       iss_retido: nota.iss_retido,
       obrigatoria: nota.obrigatoria,
       reforma: nota.reforma,
-      provider: emitted.provider,
-      provider_ref: emitted.provider_ref,
       rule_version: nota.rule_version,
     };
+
+    if (!(await decide(c.id, 'issue_invoice', args.confirm ?? false))) {
+      return { ...base, executed: false, requires_confirmation: true };
+    }
+
+    const emitted = await issueWithProvider(c, refPeriod, nota);
+    await repo().recordInvoice({
+      company_id: c.id, ref_period: refPeriod, tipos: nota.tipos, valor_total: nota.valor_total,
+      iss_retido: nota.iss_retido, provider_ref: emitted.provider_ref, status: emitted.status,
+    });
+    return { ...base, executed: true, requires_confirmation: false, provider: emitted.provider, provider_ref: emitted.provider_ref };
   },
 
   /** Simulação MEI → ME (Simples). Leitura, sem efeito. */
@@ -210,7 +226,10 @@ export const tools = {
     };
   },
 
-  /** AÇÃO (§12): cria uma cobrança Pix/boleto via gateway e persiste. */
+  /**
+   * AÇÃO (§12): cria uma cobrança Pix/boleto. Em modo assistido devolve o
+   * preview (sem acionar o gateway); só cria quando confirmado ou autônomo.
+   */
   async create_charge(args: {
     company_id: string;
     amount: number;
@@ -218,30 +237,25 @@ export const tools = {
     due_date?: string;
     customer_name?: string;
     description?: string;
+    confirm?: boolean;
   }) {
     const c = await repo().getCompany(args.company_id);
     const method = args.method ?? 'pix';
     const dueDate = args.due_date ?? new Date(NOW().getTime() + 3 * 86400000).toISOString().slice(0, 10);
+    const base = { method, amount: args.amount, due_date: dueDate, customer_name: args.customer_name ?? null };
+
+    if (!(await decide(c.id, 'create_charge', args.confirm ?? false))) {
+      return { ...base, executed: false, requires_confirmation: true };
+    }
+
     const created = await getPaymentGateway().createCharge({
-      company_cnpj: c.cnpj,
-      amount: args.amount,
-      method,
-      due_date: dueDate,
-      description: args.description,
-      customer_name: args.customer_name,
+      company_cnpj: c.cnpj, amount: args.amount, method, due_date: dueDate, description: args.description, customer_name: args.customer_name,
     });
     const charge = await repo().createCharge({
-      company_id: c.id,
-      customer_name: args.customer_name ?? null,
-      amount: args.amount,
-      method,
-      due_date: dueDate,
-      status: 'open',
-      pix_copia_cola: created.pix_copia_cola,
-      boleto_url: created.boleto_url,
-      dunning_step: 0,
+      company_id: c.id, customer_name: args.customer_name ?? null, amount: args.amount, method, due_date: dueDate,
+      status: 'open', pix_copia_cola: created.pix_copia_cola, boleto_url: created.boleto_url, dunning_step: 0,
     });
-    return { requires_confirmation: true, charge_id: charge.id, method, amount: args.amount, due_date: dueDate, provider: created.provider, pix_copia_cola: created.pix_copia_cola, boleto_url: created.boleto_url };
+    return { ...base, executed: true, requires_confirmation: false, charge_id: charge.id, provider: created.provider, pix_copia_cola: created.pix_copia_cola, boleto_url: created.boleto_url };
   },
 
   /** Lista cobranças da empresa (§12). */
@@ -252,6 +266,34 @@ export const tools = {
   /** CRM: clientes da empresa (§12). */
   async list_customers(args: { company_id: string }) {
     return { customers: await repo().getCustomers(args.company_id) };
+  },
+
+  /** Wizard de decisão de regime 2027 (§13.2). Leitura, sem efeito. */
+  async recommend_regime(args: { company_id: string }) {
+    const c = await repo().getCompany(args.company_id);
+    const txs = await repo().getTransactions(c.id);
+    const rev12 = receita12m(txs, NOW());
+    const mediaMensal = rev12 / 12;
+    return recomendarRegime(
+      {
+        regime: c.regime,
+        revenue_12m: rev12,
+        projected_revenue_12m: Math.round((rev12 + mediaMensal * 6) * 100) / 100, // projeção 6 meses
+        b2b_share: await b2bShare(c.id),
+        ref_period: currentRefPeriod(),
+      },
+      rules(),
+    );
+  },
+
+  /** Lê a política de automação progressiva da empresa (§6.5). */
+  async get_automation(args: { company_id: string }) {
+    return await repo().getAutomationPolicy(args.company_id);
+  },
+
+  /** AÇÃO de configuração: ajusta o nível de autonomia por ação (§6.5). */
+  async set_automation(args: { company_id: string; policy: Partial<AutomationPolicy> }) {
+    return await repo().setAutomationPolicy(args.company_id, args.policy);
   },
 
   /** Multa por atraso de uma obrigação (helper para o detector de DAS vencido). */

@@ -25,6 +25,8 @@ a configuração versionada de regras e um dashboard de demonstração.
 | **Notas Fiscais** | Provedor de emissão (stub + Focus NFe) atrás de interface (§10) | `apps/api/src/nf/` |
 | **Open Finance** | Provedor bancário (stub + Pluggy), sync que classifica PF×PJ e materializa o ledger (§11) | `apps/api/src/bank`, `src/jobs/sync-bank.ts` |
 | **Cobrança + CRM** | Gateway Pix/boleto (stub + Asaas), régua de cobrança (dunning) com eventos no outbox (§12) | `apps/api/src/billing`, `src/jobs/dunning.ts` |
+| **Decisão de regime 2027** | Wizard que recomenda manter MEI / migrar ME / Simples comum × híbrido (§13.2) | `packages/tax-engine/src/regime-advisor.ts` |
+| **Automação progressiva** | Nível de autonomia por ação (manual/assisted/autonomous): prevê × executa (§6.5) | `apps/api/src/automation.ts` |
 | **Schema do banco** | Tabelas da spec §5 + outbox/emissão (§14.2) | `db/migrations/` |
 | **Seed SQL** | Gerado do JSON canônico (sem divergência) | `db/seeds/tax_rules_2026.sql` |
 | **Dashboard** | Visão geral, monitor de limite, calculadora DAS, Reforma e chat do Copiloto | `index.html` |
@@ -44,7 +46,7 @@ usadas) para gravação no `audit_log` — defensibilidade legal.
 ```bash
 npm install                 # instala todos os workspaces
 
-npm run check               # typecheck + guard anti-hardcode + testes (82 casos)
+npm run check               # typecheck + guard anti-hardcode + testes (96 casos)
 npm test                    # testes do tax-engine + da API
 npm run seed:gen            # regenera db/seeds/tax_rules_2026.sql do JSON canônico
 npm run api:dev             # sobe a API em http://localhost:3001 (+ agendador)
@@ -72,12 +74,19 @@ Backend Fastify que expõe o tax-engine, o calendário e os detectores, além do
 | `POST` | `/jobs/dunning` | Roda a régua de cobrança: avança etapas e emite eventos |
 | `GET` | `/companies/:id/ledger` | Ledger de receita materializado (janela móvel 12m) |
 | `GET` | `/companies/:id/charges?status=` | Cobranças da empresa |
+| `GET` | `/companies/:id/regime-advice` | Wizard de decisão de regime 2027 (§13.2) |
+| `GET`/`PUT` | `/companies/:id/automation` | Lê/ajusta os níveis de autonomia por ação (§6.5) |
 
 As tools incluem cálculo (`calculate_das_mei`, `check_limit_projection`,
 `explain_reform_impact`…), **notas fiscais** (`validate_invoice`, `issue_invoice`, §10)
-**financeiro** (`get_cashflow`, `classify_transaction`, §11) e **cobrança/CRM**
-(`create_charge`, `list_charges`, `list_customers`, §12) — todas acessíveis
-via `POST /companies/:id/tools/:tool`.
+**financeiro** (`get_cashflow`, `classify_transaction`, §11) **cobrança/CRM** (`create_charge`, `list_charges`, `list_customers`, §12) e
+**estratégia** (`recommend_regime`, `get_automation`, `set_automation`, §13.2/§6.5)
+— todas acessíveis via `POST /companies/:id/tools/:tool`.
+
+As AÇÕES (`issue_invoice`, `create_charge`, `generate_das_guia`) respeitam a
+**automação progressiva**: em modo `assisted` (default) o Agente apenas *prevê* o
+resultado (sem efeito colateral) e pede confirmação; com `confirm: true` ou em
+modo `autonomous`, executa. Decisões de alto risco fiscal nunca saem do humano.
 
 #### Persistência, outbox e alertas
 
@@ -154,7 +163,7 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
 ├── packages/tax-engine/             # motor tributário puro (TypeScript)
 │   ├── src/                         #   das-mei · das-simples · limits · penalty · reform
 │   │                                #   · calendar · detectors · nota-fiscal · classify
-│   │                                #   · ledger · dunning · tax-rules
+│   │                                #   · ledger · dunning · regime-advisor · tax-rules
 │   ├── data/tax_rules_2026.json     #   fonte da verdade (versionada)
 │   ├── test/                        #   casos de aceite (node:test + tsx)
 │   └── scripts/check-no-hardcode.mjs
@@ -162,6 +171,7 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
     ├── migrations/001_init.sql      # schema completo (spec §5)
     ├── migrations/002_outbox.sql    # outbox transacional + log de emissão (§14.2)
     ├── migrations/003_open_finance.sql # idempotência da sincronização bancária (§11)
+    ├── migrations/004_automation.sql # níveis de autonomia por ação (§6.5)
     └── seeds/                       # seed de tax_rules (gerado)
 ```
 
@@ -179,7 +189,14 @@ ao `@copiloto/tax-engine`. Configure o modelo via `COPILOTO_AGENT_MODEL`.
   PF×PJ + detector de mistura, ✅ ledger de receita (janela móvel), ✅ fluxo de caixa.
 - **Fase 4** — ✅ Cobrança Pix/boleto (gateway stub + Asaas), ✅ régua de cobrança
   (dunning) com eventos no outbox, ✅ CRM (clientes + cobranças).
-- **Fase 5** — Wizard de decisão de regime 2027, automação progressiva.
+- **Fase 5** — ✅ Wizard de decisão de regime 2027 (manter MEI / migrar ME / Simples
+  comum × híbrido) + detector do prazo de opção, ✅ automação progressiva (níveis
+  de autonomia por ação: prevê × executa).
+
+> Todas as fases do roadmap §18 têm seu núcleo implementado e testado. O que
+> permanece para produção real são integrações externas (ativar os adaptadores
+> Postgres/Focus/Pluggy/Asaas/WhatsApp via env) e o frontend completo — a lógica
+> de negócio, os jobs e o Agente já estão prontos e cobertos por testes.
 
 > Aviso: o produto orienta e automatiza, mas decisões de alto risco fiscal
 > (enquadramento, regime 2027) exigem validação contábil — conforme a spec.
