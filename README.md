@@ -29,7 +29,7 @@ a configuração versionada de regras e um dashboard de demonstração.
 | **Automação progressiva** | Nível de autonomia por ação (manual/assisted/autonomous): prevê × executa (§6.5) | `apps/api/src/automation.ts` |
 | **Schema do banco** | Tabelas da spec §5 + outbox/emissão (§14.2) | `db/migrations/` |
 | **Seed SQL** | Gerado do JSON canônico (sem divergência) | `db/seeds/tax_rules_2026.sql` |
-| **Dashboard** | Visão geral, monitor de limite, calculadora DAS, Reforma e chat do Copiloto | `index.html` |
+| **Dashboard** | Visão geral, limite, DAS, cobrança, Reforma/wizard e chat — offline ou conectado à API | `index.html` |
 
 ### Princípio inegociável: nada hardcoded
 
@@ -53,7 +53,11 @@ npm run api:dev             # sobe a API em http://localhost:3001 (+ agendador)
 ```
 
 O dashboard é um único `index.html` autocontido — abra direto no navegador
-(ou sirva com `python3 -m http.server`).
+(ou sirva com `python3 -m http.server`). Por padrão roda **offline** com dados de
+demonstração; clique em **"Conectar API"** (ou abra com `?api=http://localhost:3001`)
+para hidratar os painéis com dados reais do backend — KPIs, monitor de limite,
+obrigações, alertas dos detectores, cobranças, wizard de regime e chat do Agente.
+A API habilita CORS (`CORS_ORIGIN` para restringir em produção).
 
 ### API (apps/api)
 

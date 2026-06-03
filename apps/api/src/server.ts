@@ -22,6 +22,16 @@ export function buildServer() {
   const now = () => new Date(process.env.COPILOTO_FAKE_NOW ?? new Date().toISOString());
   const repo = () => getRepository();
 
+  // CORS aberto: o dashboard (servido em outra origem) consome esta API.
+  // Restrinja via CORS_ORIGIN em produção.
+  const corsOrigin = process.env.CORS_ORIGIN ?? '*';
+  app.addHook('onRequest', async (req, reply) => {
+    reply.header('Access-Control-Allow-Origin', corsOrigin);
+    reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+    reply.header('Access-Control-Allow-Headers', 'content-type');
+    if (req.method === 'OPTIONS') reply.code(204).send();
+  });
+
   app.get('/health', async () => ({ ok: true, agent_available: agent.available }));
 
   app.get('/companies/:id/status', async (req) => {

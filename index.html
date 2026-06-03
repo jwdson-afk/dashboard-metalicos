@@ -110,6 +110,13 @@ select,input{width:100%;font-family:inherit;font-size:13px;background:#0f1117;bo
 .tl-year{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);min-width:74px}
 .tl-desc{font-size:12px;color:var(--muted)}
 @media(max-width:720px){.kg{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.kv{font-size:17px}}
+/* conexão API */
+.conn{display:flex;align-items:center;gap:8px}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex-shrink:0}
+.conn-dot.on{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.conn button{font-size:10.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:#0f1117;color:var(--muted);cursor:pointer;font-family:inherit}
+.conn button:hover{color:var(--text);border-color:var(--border2)}
+.empty{font-size:11.5px;color:var(--faint);padding:14px 4px;text-align:center}
 </style>
 </head>
 <body>
@@ -121,13 +128,18 @@ select,input{width:100%;font-family:inherit;font-size:13px;background:#0f1117;bo
       <div class="hsub" id="company-sub">Marina Artesanato · CNPJ 12.345.678/0001-90 · MEI</div>
     </div>
   </div>
-  <div class="badge" id="year-badge">Regras vigentes · 2026</div>
+  <div class="conn">
+    <span class="conn-dot" id="conn-dot" title="modo offline"></span>
+    <span class="badge" id="year-badge">Regras vigentes · 2026</span>
+    <button id="conn-btn" title="Conectar a uma API do backend">Conectar API</button>
+  </div>
 </header>
 
 <div class="tabs-wrap"><div class="tabs" id="tabs">
   <button class="tab active" data-p="overview">Visão geral</button>
   <button class="tab" data-p="limit">Monitor de limite</button>
   <button class="tab" data-p="fiscal">Fiscal &amp; DAS</button>
+  <button class="tab" data-p="cobranca">Cobrança</button>
   <button class="tab" data-p="reform">Reforma</button>
   <button class="tab" data-p="agent">Copiloto (IA)</button>
 </div></div>
@@ -191,6 +203,29 @@ select,input{width:100%;font-family:inherit;font-size:13px;background:#0f1117;bo
     </div>
   </section>
 
+  <!-- COBRANÇA -->
+  <section class="pane" id="cobranca">
+    <div class="grid2">
+      <div class="card">
+        <div class="ct">Nova cobrança (Pix / boleto)</div>
+        <div class="field"><label>Cliente</label><input id="chg-customer" placeholder="Nome do cliente"></div>
+        <div class="field"><label>Valor (R$)</label><input id="chg-amount" type="number" min="0" step="0.01" placeholder="0,00"></div>
+        <div class="field"><label>Forma</label>
+          <select id="chg-method"><option value="pix">Pix</option><option value="boleto">Boleto</option></select></div>
+        <button class="btn primary" id="chg-create">Gerar cobrança</button>
+        <div class="result-box" id="chg-result" style="display:none"></div>
+        <p class="note">No modo assistido (padrão), o Copiloto apenas <em>prevê</em> a cobrança;
+        a criação real acontece ao confirmar. A régua de cobrança (§12) cuida dos lembretes.</p>
+      </div>
+      <div class="card">
+        <div class="ct">Cobranças da empresa</div>
+        <table><thead><tr><th>Cliente</th><th class="num">Valor</th><th>Vence</th><th>Forma</th><th>Status</th></tr></thead>
+        <tbody id="charges-body"></tbody></table>
+        <div class="empty" id="charges-empty">Conecte a API para ver as cobranças reais.</div>
+      </div>
+    </div>
+  </section>
+
   <!-- REFORM -->
   <section class="pane" id="reform">
     <div class="grid2">
@@ -204,6 +239,13 @@ select,input{width:100%;font-family:inherit;font-size:13px;background:#0f1117;bo
       <div class="card">
         <div class="ct">Cronograma da Reforma (LC 214/2025)</div>
         <div class="reform-tl" id="reform-tl"></div>
+      </div>
+      <div class="card full">
+        <div class="ct">Wizard de decisão de regime 2027</div>
+        <div id="regime-advice">
+          <p class="empty" style="text-align:left">Conecte a API para receber a recomendação personalizada
+          (manter MEI, migrar para ME, Simples comum ou híbrido) com base no seu faturamento e nas suas vendas B2B.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -365,13 +407,161 @@ function answer(q){
   }
   return {tool:null, a:'Boa pergunta! Posso te ajudar com DAS, limite de faturamento, emissão de nota, cobrança e a Reforma. Sobre qual desses você quer falar?'};
 }
-function send(q){ if(!q.trim())return; addMsg(q,'user'); const r=answer(q);
-  setTimeout(()=>addMsg(r.a,'bot',r.tool),350); }
+async function send(q){
+  if(!q.trim())return; addMsg(q,'user');
+  if(API.base){
+    addMsg('<span style="opacity:.6">pensando…</span>','bot');
+    try{
+      const r=await API.post(`/companies/${API.company}/agent/message`,{message:q});
+      chat.lastChild.remove();
+      const tool=(r.tool_calls&&r.tool_calls.length)?r.tool_calls.map(t=>t.name).join(', '):null;
+      addMsg(r.reply||'(sem resposta)','bot',tool);
+    }catch(e){ chat.lastChild.remove(); addMsg('Não consegui falar com o Agente: '+e.message+'. Verifique a API (ANTHROPIC_API_KEY).','bot'); }
+    return;
+  }
+  const r=answer(q); setTimeout(()=>addMsg(r.a,'bot',r.tool),350);
+}
 document.getElementById('chat-send').onclick=()=>{const i=document.getElementById('chat-text');send(i.value);i.value='';};
 document.getElementById('chat-text').addEventListener('keydown',e=>{if(e.key==='Enter'){send(e.target.value);e.target.value='';}});
 const suggests=['Quanto vou pagar de imposto?','Estou perto do limite?','Essa reforma vai me afetar?','Qual a alíquota de ISS do meu município?'];
 document.getElementById('suggest').innerHTML=suggests.map(s=>`<button>${s}</button>`).join('');
 document.querySelectorAll('#suggest button').forEach(b=>b.onclick=()=>send(b.textContent));
+
+// ─────────────────────────────────────────────────────────────────────────
+// Integração com o backend (apps/api). Quando uma URL de API é configurada,
+// o dashboard hidrata os painéis com dados reais; senão, segue offline.
+// Base: ?api=<url> na URL, ou localStorage 'copiloto_api'.
+const API = {
+  base: new URLSearchParams(location.search).get('api') || localStorage.getItem('copiloto_api') || '',
+  company: 'demo-company',
+  async get(p){ const r=await fetch(this.base+p); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); },
+  async post(p,body){ const r=await fetch(this.base+p,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{})}); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); },
+};
+const $ = (id)=>document.getElementById(id);
+const THR_LABEL={ ok:'dentro do limite', info_50:'acima de 50%', warning_80:'acima de 80%', critical_95:'acima de 95%', overflow:'acima do teto' };
+const SEV_CLASS={ info:'info', warning:'warning', critical:'critical' };
+
+function updateConnUI(){
+  const on=!!API.base;
+  $('conn-dot').classList.toggle('on',on);
+  $('conn-dot').title = on?('conectado: '+API.base):'modo offline';
+  $('conn-btn').textContent = on?'API conectada':'Conectar API';
+}
+$('conn-btn').onclick=()=>{
+  const url=prompt('URL base da API do Copiloto (ex.: http://localhost:3001)', API.base||'http://localhost:3001');
+  if(url===null) return;
+  API.base=url.trim().replace(/\/$/,'');
+  if(API.base) localStorage.setItem('copiloto_api',API.base); else localStorage.removeItem('copiloto_api');
+  updateConnUI();
+  if(API.base) hydrateAll();
+};
+
+async function hydrateAll(){
+  try{
+    const [status,obs,det,charges,advice] = await Promise.allSettled([
+      API.get(`/companies/${API.company}/status`),
+      API.get(`/companies/${API.company}/obligations`),
+      API.get(`/companies/${API.company}/detectors`),
+      API.get(`/companies/${API.company}/charges`),
+      API.get(`/companies/${API.company}/regime-advice`),
+    ]);
+    if(status.value) renderStatus(status.value);
+    if(obs.value) renderObligations(obs.value.obligations||[]);
+    if(det.value) renderAlerts(det.value.events||[]);
+    if(charges.value) renderCharges(charges.value.charges||[]);
+    if(advice.value) renderAdvice(advice.value);
+  }catch(e){ console.warn('hydrate falhou',e); }
+}
+
+function renderStatus(s){
+  const pct=s.usage_pct, limit=s.limit;
+  $('kpis').innerHTML=[
+    {hl:true,l:'Faturamento 12m',v:fmt(s.revenue_12m),s:`${pct}% do teto`,chip:[pct>=80?'bad':pct>=50?'warn':'good',pct+'% usado']},
+    {l:'Teto do regime',v:fmt(limit),s:'Janela móvel 12 meses'},
+    {l:'Obrigações pendentes',v:String(s.pending_obligations),s:s.next_due?`próx.: ${s.next_due.kind} ${s.next_due.due_date}`:'em dia'},
+    {l:'Margem até o teto',v:fmt(Math.max(0,limit-s.revenue_12m)),s:'Antes de mudar de regime',chip:[pct>=80?'bad':'warn',THR_LABEL[s.threshold]||'']},
+  ].map(k=>`<div class="kc ${k.hl?'hl':''}"><div class="kl">${k.l}</div><div class="kv mono">${k.v}</div><div class="ks">${k.s}</div>${k.chip?`<span class="chip ${k.chip[0]}">${k.chip[1]}</span>`:''}</div>`).join('');
+  // gauge
+  const g=$('gauge'); $('lim-rev').textContent=fmt(s.revenue_12m); $('lim-tot').textContent=fmt(limit); $('lim-pct').textContent=pct+'%';
+  g.style.width=Math.min(pct,100)+'%';
+  g.style.background=pct>=95?'var(--coral)':pct>=80?'var(--amber)':'linear-gradient(90deg,var(--accent),var(--blue))';
+  const thr=[['50%','info','Acompanhar',50],['80%','warning','Simular migração',80],['95%','critical','Migração + contador',95]];
+  $('thresholds').innerHTML=thr.map(([p,c,l,n])=>`<div class="thr-item ${pct>=n?'on':''}"><div class="thr-pct" style="color:${pct>=n?(c==='critical'?'var(--coral)':c==='warning'?'var(--amber)':'var(--blue)'):'var(--faint)'}">${p}</div><div class="thr-lbl">${l}</div></div>`).join('');
+}
+
+function renderObligations(list){
+  if(!list.length){ $('oblig-body').innerHTML='<tr><td colspan="5" class="empty">Nenhuma obrigação.</td></tr>'; return; }
+  const lbl={pending:'a vencer',paid:'pago',overdue:'vencido',generated:'gerada'};
+  $('oblig-body').innerHTML=list.map(o=>`<tr><td>${o.kind}</td><td class="mono">${o.ref_period}</td><td class="mono">${o.due_date}</td><td class="num">${o.amount!=null?fmt(o.amount):'—'}</td><td><span class="pill ${o.status}">${lbl[o.status]||o.status}</span></td></tr>`).join('');
+}
+
+function renderAlerts(events){
+  if(!events.length){ $('alerts').innerHTML='<div class="empty">Nenhum alerta no momento — tudo em dia. 🎉</div>'; return; }
+  $('alerts').innerHTML=events.map(e=>{
+    const p=e.payload||{}; const sev=SEV_CLASS[e.severity]||'info';
+    const t=titleFor(e.event_type,p), b=bodyFor(e.event_type,p);
+    return `<div class="alert ${sev}"><div class="dot"></div><div style="flex:1"><h4>${t}</h4><p>${b}</p></div></div>`;
+  }).join('');
+}
+function titleFor(type,p){return ({
+  'limit.threshold_50':'Você passou da metade do limite','limit.threshold_80':'Atenção: 80% do limite',
+  'limit.threshold_95':'Urgente: quase no teto','limit.projected_overflow':'Você vai estourar o limite',
+  'obligation.due_soon':'DAS perto de vencer','obligation.overdue':'DAS vencido','dasn.due_soon':'DASN chegando',
+  'finance.mixed_pf_pj':'Dinheiro pessoal misturado com o da empresa','charge.reminder':'Lembrete de cobrança',
+  'charge.overdue':'Cobrança vencida','reform.decision_due_soon':'Decisão de regime 2027 se aproximando',
+})[type]||'Aviso do Copiloto';}
+function bodyFor(type,p){
+  if(type.startsWith('limit.')) return `Faturamento de 12 meses em ${p.usage_pct}% do teto (${fmt(p.limit)}).`;
+  if(type==='obligation.due_soon') return `${p.kind} de ${p.ref_period} (${p.amount!=null?fmt(p.amount):'—'}) vence em ${p.dias_restantes} dia(s), em ${p.due_date}.`;
+  if(type==='obligation.overdue') return `${p.kind} de ${p.ref_period} venceu há ${p.dias_atraso} dia(s).`;
+  if(type==='dasn.due_soon') return `A DASN de ${p.ref_period} vence em ${p.dias_restantes} dia(s).`;
+  if(type==='finance.mixed_pf_pj') return `${p.count} gasto(s) pessoal(is) na conta PJ (${fmt(p.total)}). Misturar PF e PJ traz risco fiscal.`;
+  if(type==='charge.reminder') return `Cobrança de ${fmt(p.amount)} vence em ${p.dias_para_vencer} dia(s) (${p.due_date}).`;
+  if(type==='charge.overdue') return `Cobrança de ${fmt(p.amount)} está ${p.dias_atraso} dia(s) em atraso.`;
+  if(type==='reform.decision_due_soon') return `Faltam ${p.dias_restantes} dia(s) (até ${p.prazo}) para escolher o regime de 2027.`;
+  return JSON.stringify(p);
+}
+
+function renderCharges(list){
+  $('charges-empty').style.display = list.length?'none':'block';
+  const lbl={open:'aberta',paid:'paga',overdue:'vencida',canceled:'cancelada'};
+  $('charges-body').innerHTML=list.map(c=>`<tr><td>${c.customer_name||'—'}</td><td class="num">${fmt(c.amount)}</td><td class="mono">${c.due_date}</td><td>${c.method}</td><td><span class="pill ${c.status==='paid'?'paid':c.status==='overdue'?'pending':'paid'}">${lbl[c.status]||c.status}</span></td></tr>`).join('');
+}
+
+function renderAdvice(a){
+  const map={manter_mei:'Manter MEI',migrar_me:'Migrar para Microempresa (ME)',simples_comum:'Simples Nacional comum',simples_hibrido:'Simples Híbrido'};
+  const urg={baixa:'good',media:'warn',alta:'bad'};
+  $('regime-advice').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span class="chip ${urg[a.urgency]||'neutral'}">urgência ${a.urgency}</span>
+      <strong style="font-size:15px">${map[a.recommendation]||a.recommendation}</strong>
+    </div>
+    <ul style="margin:0 0 10px 18px;font-size:12.5px;color:var(--muted);line-height:1.6">${a.reasons.map(r=>`<li>${r}</li>`).join('')}</ul>
+    <div style="font-size:11px;color:var(--faint)">Prazo de opção: <span class="mono">${a.prazo_opcao_2027}</span>${a.alternativas&&a.alternativas.length?` · alternativas: ${a.alternativas.map(x=>map[x]||x).join(', ')}`:''}</div>`;
+}
+
+// criar cobrança (preview em modo assistido; confirma na sequência)
+$('chg-create').onclick=async()=>{
+  if(!API.base){ alert('Conecte a API primeiro (botão "Conectar API").'); return; }
+  const amount=parseFloat($('chg-amount').value), customer_name=$('chg-customer').value, method=$('chg-method').value;
+  if(!(amount>0)){ alert('Informe um valor válido.'); return; }
+  const box=$('chg-result'); box.style.display='block'; box.textContent='Gerando…';
+  try{
+    const preview=await API.post(`/companies/${API.company}/tools/create_charge`,{amount,method,customer_name});
+    if(preview.executed===false){
+      const ok=confirm(`Criar cobrança de ${fmt(amount)} (${method}) para ${customer_name||'cliente'}, vencendo ${preview.due_date}?`);
+      if(!ok){ box.textContent='Cancelado.'; return; }
+      const done=await API.post(`/companies/${API.company}/tools/create_charge`,{amount,method,customer_name,confirm:true});
+      box.innerHTML=`<div class="result-val mono" style="font-size:14px">Cobrança criada ✓</div><div style="font-size:11px;color:var(--muted);margin-top:6px">${done.pix_copia_cola?('Pix: '+done.pix_copia_cola):('Boleto: '+done.boleto_url)}</div>`;
+    }else{
+      box.innerHTML=`<div class="result-val mono" style="font-size:14px">Cobrança criada ✓ (modo autônomo)</div>`;
+    }
+    const cs=await API.get(`/companies/${API.company}/charges`); renderCharges(cs.charges||[]);
+  }catch(e){ box.textContent='Erro: '+e.message; }
+};
+
+updateConnUI();
+if(API.base) hydrateAll();
 
 // ── Tabs ──
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
