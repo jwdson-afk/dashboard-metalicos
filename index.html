@@ -171,6 +171,20 @@ select:focus,input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
 .stk{display:inline-flex;align-items:center;gap:5px}
 .stk::before{content:'';width:8px;height:8px;border-radius:50%}
 .stk.ok::before{background:#22c55e}.stk.low::before{background:var(--amber)}.stk.zero::before{background:var(--coral)}
+/* ── Integração iFood / Custos / Saúde ── */
+.connect-card{display:flex;align-items:center;gap:18px;padding:22px;border-radius:var(--r);border:1px dashed var(--border2);background:var(--soft);flex-wrap:wrap}
+.connect-card.on{border-style:solid;border-color:#fbd5cf;background:#fff5f4}
+.ifood-logo{width:56px;height:56px;border-radius:15px;background:#ea1d2c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;box-shadow:0 8px 18px rgba(234,29,44,.32);text-align:center;line-height:1.1}
+.connect-card .grow{flex:1;min-width:200px}
+.connect-card h3{font-size:16px;font-weight:700;margin-bottom:3px}
+.connect-card p{font-size:12.5px;color:var(--muted)}
+.btn.ifood{background:#ea1d2c;border-color:#ea1d2c;color:#fff;box-shadow:0 6px 14px rgba(234,29,44,.28)}
+.btn.ifood:hover{background:#c81626;color:#fff}
+.score-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px}
+.score-badge.ok{background:#e6f7ee;color:#16a34a}
+.score-badge.warn{background:#fef3e2;color:#d97706}
+.score-badge.bad{background:#fee9ee;color:#e11d48}
+.waterfall .flowrow{margin-bottom:0}
 @media(max-width:720px){
   .kg{grid-template-columns:repeat(2,1fr)}
   .kg3{grid-template-columns:1fr}
@@ -206,6 +220,9 @@ select:focus,input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
   <button class="tab" data-p="produtos">Produtos &amp; Estoque</button>
   <button class="tab" data-p="financeiro">Financeiro</button>
   <button class="tab" data-p="negocio">Meu Negócio</button>
+  <button class="tab" data-p="ifood">iFood</button>
+  <button class="tab" data-p="custos">Custos</button>
+  <button class="tab" data-p="saude">Saúde do Negócio</button>
   <button class="tab" data-p="limit">Monitor de limite</button>
   <button class="tab" data-p="fiscal">Fiscal &amp; DAS</button>
   <button class="tab" data-p="cobranca">Cobrança</button>
@@ -453,6 +470,65 @@ select:focus,input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
         <div class="ct">Faturamento por mês</div>
         <div class="bars" id="biz-monthly"></div>
         <div class="bx" id="biz-monthly-x"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- iFOOD / DELIVERY -->
+  <section class="pane" id="ifood">
+    <div id="ifood-conn" style="margin-bottom:20px"></div>
+    <div id="ifood-body"></div>
+  </section>
+
+  <!-- CUSTOS -->
+  <section class="pane" id="custos">
+    <div class="kg3" id="cost-kpis"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="ct">Lançar custo</div>
+        <div class="field"><label>Descrição</label><input id="c-desc" placeholder="Ex.: Aluguel do ponto"></div>
+        <div class="field"><label>Grupo</label>
+          <select id="c-grupo">
+            <option value="cmv">Insumos / mercadoria (CMV)</option>
+            <option value="fixo">Custo fixo</option>
+            <option value="variavel">Custo variável</option>
+          </select></div>
+        <div class="field"><label>Forma de cálculo</label>
+          <select id="c-base">
+            <option value="mensal">Valor fixo por mês (R$)</option>
+            <option value="percent">% sobre o faturamento</option>
+          </select></div>
+        <div class="field"><label>Valor (R$ por mês ou %)</label><input id="c-amount" type="number" min="0" step="0.01" placeholder="0"></div>
+        <button class="btn primary" id="c-add">Lançar custo</button>
+        <p class="note">CMV e custos variáveis em "%" acompanham o faturamento automaticamente.
+        Custos fixos entram com valor cheio todo mês. É isso que permite calcular a
+        margem de lucro real e a saúde do negócio.</p>
+      </div>
+      <div class="card">
+        <div class="ct">Estrutura de custos do mês</div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>Descrição</th><th>Grupo</th><th>Base</th><th class="num">Custo no mês</th><th>Ação</th></tr></thead>
+          <tbody id="cost-body"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAÚDE DO NEGÓCIO -->
+  <section class="pane" id="saude">
+    <div class="kg3" id="health-kpis"></div>
+    <div class="grid2">
+      <div class="card full">
+        <div class="ct">Demonstrativo do mês — do faturamento ao lucro</div>
+        <div class="flowbox waterfall" id="health-flow"></div>
+        <p class="note" id="health-note"></p>
+      </div>
+      <div class="card">
+        <div class="ct">Análise fiscal &amp; tributária</div>
+        <div id="health-fiscal"></div>
+      </div>
+      <div class="card">
+        <div class="ct">Para onde vai cada R$ 1,00 de venda</div>
+        <div id="health-breakdown"></div>
       </div>
     </div>
   </section>
@@ -997,6 +1073,253 @@ function renderBiz(){
 function renderAll(){ renderProducts(); renderSales(); renderFinance(); renderBiz(); }
 renderAll();
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',renderAll));
+</script>
+
+<script type="module">
+// ─────────────────────────────────────────────────────────────────────────
+// Integração de delivery (iFood) + Custos + Saúde do Negócio.
+// Conexão simulada (a API real do iFood exige credenciais de parceiro e OAuth);
+// importa pedidos, aplica as taxas reais do iFood, cruza com custos e impostos
+// e calcula a margem de lucro e a saúde financeira do restaurante.
+// ─────────────────────────────────────────────────────────────────────────
+const fmt = (v)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+const pct = (v)=>(Math.round(v*10)/10).toLocaleString('pt-BR')+'%';
+const $ = (id)=>document.getElementById(id);
+const uid = ()=>Math.random().toString(36).slice(2,9);
+const iso = (d)=>d.toISOString().slice(0,10);
+const addDays = (n)=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d);};
+const brDate = (s)=>s? s.split('-').reverse().join('/') : '—';
+const month = ()=>iso(new Date()).slice(0,7);
+const KEY = 'copiloto_rest_v1';
+
+// Tabela do Simples Nacional — Anexo I (comércio/restaurante), estimativa.
+// Em produção, o cálculo exato sai do @copiloto/tax-engine (tax_rules versionado).
+const ANEXO_I = [
+  {ate:180000, nom:0.04, ded:0},
+  {ate:360000, nom:0.073, ded:5940},
+  {ate:720000, nom:0.095, ded:13860},
+  {ate:1800000, nom:0.107, ded:22500},
+  {ate:3600000, nom:0.143, ded:87300},
+  {ate:4800000, nom:0.19, ded:378000},
+];
+const MEI_TETO = 81000;
+
+function seed(){
+  return {
+    ifood:{ connected:false, plano:'entrega', comissao:23, pagamento:3.2, mensalidade:150, orders:[] },
+    costs:[
+      {id:uid(),desc:'Insumos / mercadoria (CMV)',grupo:'cmv',base:'percent',amount:32},
+      {id:uid(),desc:'Embalagens descartáveis',grupo:'variavel',base:'percent',amount:3},
+      {id:uid(),desc:'Aluguel do ponto',grupo:'fixo',base:'mensal',amount:1800},
+      {id:uid(),desc:'Equipe (salários)',grupo:'fixo',base:'mensal',amount:3000},
+      {id:uid(),desc:'Energia e água',grupo:'fixo',base:'mensal',amount:600},
+      {id:uid(),desc:'Gás',grupo:'fixo',base:'mensal',amount:250},
+      {id:uid(),desc:'Marketing / impulsionamento',grupo:'fixo',base:'mensal',amount:150},
+    ],
+  };
+}
+let DB = load();
+function load(){ try{const r=localStorage.getItem(KEY); if(r) return JSON.parse(r);}catch{} const s=seed(); persist(s); return s; }
+function persist(d){ DB=d||DB; localStorage.setItem(KEY,JSON.stringify(DB)); }
+
+// Gera ~30 dias de pedidos do iFood (simula o "puxar da API").
+function gerarPedidos(){
+  const orders=[]; const now=new Date();
+  for(let d=29; d>=0; d--){
+    const day=new Date(now); day.setDate(now.getDate()-d);
+    const n=5+Math.floor(Math.random()*5); // 5..9 pedidos/dia
+    for(let k=0;k<n;k++){
+      const value=Math.round((45+Math.random()*135)*100)/100; // ticket R$45–180
+      orders.push({id:uid(),date:iso(day),value});
+    }
+  }
+  return orders;
+}
+// Taxas do iFood sobre um pedido.
+function taxasPedido(value){
+  const com=value*DB.ifood.comissao/100;
+  const pag=value*DB.ifood.pagamento/100;
+  return { comissao:com, pagamento:pag, total:com+pag, repasse:value-com-pag };
+}
+// Faturamento do PDV (lê o store dos módulos de gestão, somente leitura).
+function pdvMes(){
+  try{ const r=JSON.parse(localStorage.getItem('copiloto_erp_v1'));
+    if(r&&r.sales) return r.sales.filter(s=>s.date.startsWith(month())).reduce((a,s)=>a+s.total,0);
+  }catch{} return 0;
+}
+// Pedidos iFood do mês corrente.
+const ifoodMes = ()=>DB.ifood.orders.filter(o=>o.date.startsWith(month()));
+
+// Custo do mês dado um faturamento (resolve "%" e "fixo").
+function custoMes(faturamento){
+  const det={cmv:0,fixo:0,variavel:0};
+  for(const c of DB.costs){
+    const v = c.base==='percent' ? faturamento*c.amount/100 : c.amount;
+    det[c.grupo]+=v;
+  }
+  det.total=det.cmv+det.fixo+det.variavel;
+  return det;
+}
+// Estimativa de imposto do mês a partir da projeção anual.
+function fiscal(faturamentoMes){
+  const anual = faturamentoMes*12;
+  if(anual<=MEI_TETO){
+    return { regime:'MEI', anual, impostoMes:87.05, aliquota:null,
+      nota:'Dentro do teto do MEI (R$ 81 mil/ano). DAS fixo mensal.' };
+  }
+  const faixa = ANEXO_I.find(f=>anual<=f.ate) || ANEXO_I[ANEXO_I.length-1];
+  const efet = (anual*faixa.nom - faixa.ded)/anual;
+  return { regime:'Simples Nacional · Anexo I', anual, impostoMes:faturamentoMes*efet,
+    aliquota:efet*100, nota:`Faturamento projetado acima do teto do MEI — enquadramento no Simples (estimativa pelo Anexo I).` };
+}
+
+// ════════════════ iFOOD ════════════════
+function renderIfood(){
+  const f=DB.ifood;
+  if(!f.connected){
+    $('ifood-conn').innerHTML=`<div class="connect-card">
+      <div class="ifood-logo">iFood</div>
+      <div class="grow"><h3>Conectar ao iFood</h3>
+        <p>Importe automaticamente os pedidos do seu restaurante para calcular taxas, margem e impostos.</p></div>
+      <button class="btn ifood" id="if-connect">Conectar restaurante</button></div>`;
+    $('ifood-body').innerHTML=`<p class="note">Ao conectar, o Copiloto puxa os pedidos do iFood (aqui, em modo demonstração,
+      geramos pedidos de exemplo dos últimos 30 dias). A integração real usa a API de parceiros do iFood com autorização do lojista.</p>`;
+    $('if-connect').onclick=()=>{ f.connected=true; if(!f.orders.length) f.orders=gerarPedidos(); persist(); renderRest(); };
+    return;
+  }
+  const mes=ifoodMes();
+  const bruto=mes.reduce((a,o)=>a+o.value,0);
+  const taxas=mes.reduce((a,o)=>a+taxasPedido(o.value).total,0) + (bruto>1800?f.mensalidade:0);
+  const repasse=bruto-taxas;
+  const retidoPct=bruto?taxas/bruto*100:0;
+  $('ifood-conn').innerHTML=`<div class="connect-card on">
+    <div class="ifood-logo">iFood</div>
+    <div class="grow"><h3>Restaurante conectado ✓</h3>
+      <p>${mes.length} pedidos neste mês · plano <strong>${f.plano==='entrega'?'Entrega':'Básico'}</strong> · comissão ${pct(f.comissao)} + pagamento ${pct(f.pagamento)}</p></div>
+    <div class="tline">
+      <button class="ibtn" id="if-sync">Sincronizar pedidos</button>
+      <button class="ibtn" id="if-cfg">Ajustar taxas</button>
+      <button class="ibtn danger" id="if-disc">Desconectar</button></div></div>`;
+  $('ifood-body').innerHTML=`
+    <div class="kg3" style="margin-bottom:22px">
+      <div class="kc hl"><div class="kl">Faturamento via iFood (mês)</div><div class="kv mono">${fmt(bruto)}</div><div class="ks">soma dos pedidos</div></div>
+      <div class="kc"><div class="kl">Você paga ao iFood</div><div class="kv mono" style="color:#ea1d2c">${fmt(taxas)}</div><div class="ks">comissão + pagamento${bruto>1800?' + mensalidade':''}</div><span class="chip bad">${pct(retidoPct)} retido</span></div>
+      <div class="kc"><div class="kl">Repasse líquido</div><div class="kv mono">${fmt(repasse)}</div><div class="ks">o que efetivamente entra</div><span class="chip good">no seu bolso</span></div>
+    </div>
+    <div class="card"><div class="ct">Pedidos recentes (e quanto o iFood fica)</div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Data</th><th class="num">Pedido</th><th class="num">Comissão</th><th class="num">Taxa pag.</th><th class="num">Você recebe</th></tr></thead>
+        <tbody>${[...mes].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(o=>{const t=taxasPedido(o.value);
+          return `<tr><td class="mono">${brDate(o.date)}</td><td class="num mono">${fmt(o.value)}</td>
+          <td class="num mono" style="color:#ea1d2c">−${fmt(t.comissao)}</td><td class="num mono" style="color:#ea1d2c">−${fmt(t.pagamento)}</td>
+          <td class="num mono">${fmt(t.repasse)}</td></tr>`;}).join('')}</tbody></table></div>
+      <p class="note">Cada real que entra no iFood já vem descontado da comissão e da taxa de pagamento online.
+      Por isso a margem do delivery precisa ser olhada de perto — é o que a aba <strong>Saúde do Negócio</strong> faz.</p></div>`;
+  $('if-sync').onclick=()=>{ f.orders=gerarPedidos(); persist(); renderRest(); };
+  $('if-disc').onclick=()=>{ if(confirm('Desconectar o iFood? Os pedidos importados serão removidos.')){ f.connected=false; f.orders=[]; persist(); renderRest(); } };
+  $('if-cfg').onclick=()=>{
+    const plano=prompt('Plano iFood — digite "entrega" (≈23% + 3,2%) ou "basico" (12% + 3,2%):', f.plano);
+    if(plano===null) return;
+    if(plano.toLowerCase().startsWith('bas')){ f.plano='basico'; f.comissao=12; f.mensalidade=110; }
+    else { f.plano='entrega'; f.comissao=23; f.mensalidade=150; }
+    const c=prompt('Comissão (%) cobrada pelo iFood:', f.comissao); if(c!==null&&!isNaN(+c)) f.comissao=+c;
+    persist(); renderRest();
+  };
+}
+
+// ════════════════ CUSTOS ════════════════
+function renderCustos(){
+  const fat = pdvMes() + ifoodMes().reduce((a,o)=>a+o.value,0);
+  const det = custoMes(fat);
+  $('cost-kpis').innerHTML=[
+    {l:'Custos fixos (mês)',v:fmt(det.fixo),s:'independem das vendas'},
+    {l:'CMV + variáveis (mês)',v:fmt(det.cmv+det.variavel),s:'acompanham o faturamento'},
+    {l:'Custo total estimado',v:fmt(det.total),s:'base da margem de lucro',chip:['warn','sobre '+fmt(fat)]},
+  ].map(k=>`<div class="kc"><div class="kl">${k.l}</div><div class="kv mono">${k.v}</div><div class="ks">${k.s}</div>${k.chip?`<span class="chip ${k.chip[0]}">${k.chip[1]}</span>`:''}</div>`).join('');
+  const glbl={cmv:'CMV',fixo:'Fixo',variavel:'Variável'};
+  $('cost-body').innerHTML=DB.costs.map(c=>{
+    const v=c.base==='percent'?fat*c.amount/100:c.amount;
+    return `<tr><td>${c.desc}</td>
+      <td><span class="pill ${c.grupo==='fixo'?'pending':c.grupo==='cmv'?'overdue':'paid'}">${glbl[c.grupo]}</span></td>
+      <td class="mono">${c.base==='percent'?c.amount+'% do fat.':'fixo/mês'}</td>
+      <td class="num mono">${fmt(v)}</td>
+      <td><button class="ibtn danger" data-cdel="${c.id}">🗑</button></td></tr>`;
+  }).join('')||'<tr><td colspan="5" class="empty">Nenhum custo lançado.</td></tr>';
+  $('cost-body').querySelectorAll('[data-cdel]').forEach(b=>b.onclick=()=>{
+    DB.costs=DB.costs.filter(c=>c.id!==b.dataset.cdel); persist(); renderRest();
+  });
+}
+$('c-add').onclick=()=>{
+  const desc=$('c-desc').value.trim(), amount=+$('c-amount').value;
+  if(!desc||!(amount>0)){alert('Preencha descrição e valor.');return;}
+  DB.costs.push({id:uid(),desc,grupo:$('c-grupo').value,base:$('c-base').value,amount});
+  persist(); $('c-desc').value=''; $('c-amount').value='';
+  renderRest(); alert('Custo lançado ✓');
+};
+
+// ════════════════ SAÚDE DO NEGÓCIO ════════════════
+function renderSaude(){
+  const pdv=pdvMes();
+  const mesIf=ifoodMes();
+  const ifBruto=mesIf.reduce((a,o)=>a+o.value,0);
+  const fat=pdv+ifBruto;
+  const taxasIf=mesIf.reduce((a,o)=>a+taxasPedido(o.value).total,0)+(ifBruto>1800?DB.ifood.mensalidade:0);
+  const det=custoMes(fat);
+  const fis=fiscal(fat);
+  const imposto=fis.impostoMes;
+  const lucro=fat-taxasIf-det.total-imposto;
+  const margem=fat?lucro/fat*100:0;
+  const saude = margem>=15?{c:'ok',t:'Saudável'}:margem>=5?{c:'warn',t:'Atenção'}:{c:'bad',t:'Crítico'};
+
+  $('health-kpis').innerHTML=[
+    {l:'Faturamento total (mês)',v:fmt(fat),s:`PDV ${fmt(pdv)} + iFood ${fmt(ifBruto)}`},
+    {l:'Lucro líquido (mês)',v:fmt(lucro),s:'depois de taxas, custos e impostos',chip:[lucro>=0?'good':'bad',lucro>=0?'positivo':'no vermelho']},
+    {l:'Margem de lucro',v:pct(margem),s:'quanto sobra de cada venda'},
+  ].map(k=>`<div class="kc"><div class="kl">${k.l}</div><div class="kv mono">${k.v}</div><div class="ks">${k.s}</div>${k.chip?`<span class="chip ${k.chip[0]}">${k.chip[1]}</span>`:''}</div>`).join('');
+
+  $('health-flow').innerHTML=`
+    <div class="flowrow pos"><span>Faturamento bruto (PDV + iFood)</span><b>${fmt(fat)}</b></div>
+    <div class="flowrow neg"><span>(−) Taxas do iFood</span><b>−${fmt(taxasIf)}</b></div>
+    <div class="flowrow neg"><span>(−) Insumos / CMV</span><b>−${fmt(det.cmv)}</b></div>
+    <div class="flowrow neg"><span>(−) Custos fixos + variáveis</span><b>−${fmt(det.fixo+det.variavel)}</b></div>
+    <div class="flowrow neg"><span>(−) Impostos (estimativa)</span><b>−${fmt(imposto)}</b></div>
+    <div class="flowrow tot"><span><strong>= Lucro líquido</strong> &nbsp; <span class="score-badge ${saude.c}">${saude.t}</span></span><b>${fmt(lucro)}</b></div>`;
+  $('health-note').innerHTML = margem>=15
+    ? 'Margem saudável para food service. Continue de olho no CMV e nas taxas de delivery.'
+    : margem>=5
+      ? 'Margem apertada. Os maiores vilões costumam ser as taxas do iFood e o CMV — vale renegociar fornecedores ou rever preços no cardápio do delivery.'
+      : 'Atenção: o negócio está com margem crítica ou no prejuízo. Reveja preços, taxas do iFood e custos fixos com urgência.';
+
+  $('health-fiscal').innerHTML=`
+    <div style="margin-bottom:12px"><span class="chip neutral">regime estimado</span>
+      <strong style="font-size:15px;margin-left:6px">${fis.regime}</strong></div>
+    <div class="flowbox">
+      <div class="flowrow"><span>Imposto estimado do mês</span><b>${fmt(fis.impostoMes)}</b></div>
+      ${fis.aliquota?`<div class="flowrow"><span>Alíquota efetiva</span><b>${pct(fis.aliquota)}</b></div>`:''}
+      <div class="flowrow"><span>Faturamento projetado (12m)</span><b>${fmt(fis.anual)}</b></div>
+      <div class="flowrow ${fis.anual>MEI_TETO?'neg':'pos'}"><span>Teto do MEI</span><b>${fmt(MEI_TETO)}</b></div>
+    </div>
+    <p class="note">${fis.nota} ${fis.anual>MEI_TETO?'<strong>Recomendação: planejar a migração para ME no Simples Nacional.</strong>':''}
+    Estimativa para orientação — o cálculo oficial sai do motor fiscal (tax_rules) e deve ser validado pelo contador.</p>`;
+
+  // Para onde vai cada R$1 de venda
+  const comp=[
+    ['Impostos',imposto,'#8b5cf6'],
+    ['Taxas iFood',taxasIf,'#ea1d2c'],
+    ['Insumos / CMV',det.cmv,'#f59e0b'],
+    ['Custos fixos + variáveis',det.fixo+det.variavel,'#3b82f6'],
+    ['Seu lucro',Math.max(0,lucro),'#16a34a'],
+  ];
+  const base=fat||1;
+  $('health-breakdown').innerHTML=comp.map(([l,v,cor])=>`
+    <div class="hbar-row"><div class="lab"><span>${l}</span><b>${pct(v/base*100)} · ${fmt(v)}</b></div>
+    <div class="hbar"><div style="width:${Math.min(100,v/base*100)}%;background:${cor}"></div></div></div>`).join('');
+}
+
+// ── Render + atualização ao trocar de aba ──
+function renderRest(){ renderIfood(); renderCustos(); renderSaude(); }
+renderRest();
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',renderRest));
 </script>
 </body>
 </html>
