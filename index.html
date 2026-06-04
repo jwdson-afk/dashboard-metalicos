@@ -143,8 +143,37 @@ select:focus,input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
 
 .empty{font-size:12.5px;color:var(--faint);padding:16px 4px;text-align:center}
 
+/* ── Módulos ERP (Vendas, Estoque, Financeiro, Meu Negócio) ── */
+.kg3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.row-fields{display:flex;gap:10px}
+.row-fields .field{flex:1}
+.ibtn{font-family:inherit;font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;border:1px solid var(--border2);background:#fff;color:var(--muted);cursor:pointer;line-height:1;transition:.15s}
+.ibtn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.ibtn.danger:hover{border-color:var(--coral);color:var(--coral);background:#fef1f3}
+.cart-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.cart-total{display:flex;justify-content:space-between;font-weight:700;padding:11px 2px 4px;font-size:16px}
+.cart-empty{font-size:12px;color:var(--faint);padding:12px 0;text-align:center}
+.bars{display:flex;align-items:flex-end;gap:5px;height:150px;margin-top:22px}
+.bars .b{flex:1;background:linear-gradient(var(--accent),var(--blue));border-radius:5px 5px 0 0;min-height:3px;position:relative;cursor:default}
+.bars .b:hover::after{content:attr(data-v);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:10px;padding:2px 7px;border-radius:6px;white-space:nowrap;margin-bottom:5px;z-index:5}
+.bx{display:flex;gap:5px;margin-top:7px}
+.bx span{flex:1;text-align:center;font-size:9px;color:var(--faint)}
+.hbar-row{margin:11px 0}
+.hbar-row .lab{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;color:var(--text)}
+.hbar-row .lab b{font-family:'IBM Plex Mono',monospace;font-weight:600}
+.hbar{height:10px;border-radius:6px;background:var(--soft);overflow:hidden}
+.hbar>div{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--blue));transition:width .5s}
+.flowbox{display:flex;flex-direction:column;gap:10px}
+.flowrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:11px 14px;border-radius:11px;background:var(--soft)}
+.flowrow b{font-family:'IBM Plex Mono',monospace}
+.flowrow.pos b{color:#16a34a}.flowrow.neg b{color:#e11d48}
+.flowrow.tot{background:var(--accent-soft);border:1px solid #dfe1fb}
+.stk{display:inline-flex;align-items:center;gap:5px}
+.stk::before{content:'';width:8px;height:8px;border-radius:50%}
+.stk.ok::before{background:#22c55e}.stk.low::before{background:var(--amber)}.stk.zero::before{background:var(--coral)}
 @media(max-width:720px){
   .kg{grid-template-columns:repeat(2,1fr)}
+  .kg3{grid-template-columns:1fr}
   .grid2{grid-template-columns:1fr}
   .kv{font-size:20px}
   .tabs-wrap{top:69px}
@@ -173,6 +202,10 @@ select:focus,input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
 
 <div class="tabs-wrap"><div class="tabs" id="tabs">
   <button class="tab active" data-p="overview">Visão geral</button>
+  <button class="tab" data-p="vendas">Vendas</button>
+  <button class="tab" data-p="produtos">Produtos &amp; Estoque</button>
+  <button class="tab" data-p="financeiro">Financeiro</button>
+  <button class="tab" data-p="negocio">Meu Negócio</button>
   <button class="tab" data-p="limit">Monitor de limite</button>
   <button class="tab" data-p="fiscal">Fiscal &amp; DAS</button>
   <button class="tab" data-p="cobranca">Cobrança</button>
@@ -302,6 +335,125 @@ select:focus,input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
       <p class="note">Demonstração offline. Em produção, o Agente usa o system prompt da spec §6.4
       e aciona <em>tools</em> reais (calculate_das_mei, check_limit_projection, explain_reform_impact…).
       Princípio inegociável: <strong>nunca inventa números</strong> — sempre resolve via tax_rules.</p>
+    </div>
+  </section>
+
+  <!-- VENDAS (PDV) -->
+  <section class="pane" id="vendas">
+    <div class="kg3" id="sales-kpis"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="ct">Nova venda — PDV</div>
+        <div class="field"><label>Produto</label><select id="s-prod"></select></div>
+        <div class="row-fields">
+          <div class="field"><label>Quantidade</label><input id="s-qty" type="number" min="1" value="1"></div>
+          <div class="field" style="display:flex;align-items:flex-end"><button class="btn" id="s-add-item" style="width:100%">+ Adicionar item</button></div>
+        </div>
+        <div id="cart-box"></div>
+        <div class="field" style="margin-top:6px"><label>Cliente (opcional)</label><input id="s-customer" placeholder="Nome do cliente"></div>
+        <div class="field"><label>Forma de pagamento</label>
+          <select id="s-method">
+            <option value="Pix">Pix</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Cartão">Cartão</option>
+            <option value="prazo">A prazo (gera conta a receber)</option>
+          </select></div>
+        <button class="btn primary" id="s-finish">Finalizar venda</button>
+        <p class="note">Cada venda dá baixa no estoque automaticamente. Vendas "a prazo" viram
+        contas a receber no módulo Financeiro. O total alimenta os indicadores e os gráficos do Meu Negócio.</p>
+      </div>
+      <div class="card">
+        <div class="ct">Vendas recentes</div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>Data</th><th>Itens</th><th>Cliente</th><th>Forma</th><th class="num">Total</th></tr></thead>
+          <tbody id="sales-body"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUTOS & ESTOQUE -->
+  <section class="pane" id="produtos">
+    <div class="kg3" id="prod-kpis"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="ct">Cadastrar produto</div>
+        <div class="field"><label>Nome</label><input id="p-name" placeholder="Ex.: Vela aromática"></div>
+        <div class="row-fields">
+          <div class="field"><label>SKU / código</label><input id="p-sku" placeholder="VLA-01"></div>
+          <div class="field"><label>Categoria</label><input id="p-cat" placeholder="Velas"></div>
+        </div>
+        <div class="row-fields">
+          <div class="field"><label>Custo (R$)</label><input id="p-cost" type="number" min="0" step="0.01" placeholder="0,00"></div>
+          <div class="field"><label>Preço de venda (R$)</label><input id="p-price" type="number" min="0" step="0.01" placeholder="0,00"></div>
+        </div>
+        <div class="row-fields">
+          <div class="field"><label>Estoque inicial</label><input id="p-stock" type="number" min="0" value="0"></div>
+          <div class="field"><label>Estoque mínimo</label><input id="p-min" type="number" min="0" value="5"></div>
+        </div>
+        <button class="btn primary" id="p-add">Adicionar produto</button>
+      </div>
+      <div class="card">
+        <div class="ct">Estoque atual</div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>Produto</th><th class="num">Estoque</th><th class="num">Preço</th><th class="num">Margem</th><th>Status</th><th>Movimentar</th></tr></thead>
+          <tbody id="prod-body"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINANCEIRO -->
+  <section class="pane" id="financeiro">
+    <div class="kg3" id="fin-kpis"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="ct">Lançar conta</div>
+        <div class="field"><label>Tipo</label>
+          <select id="f-type"><option value="pagar">Conta a pagar</option><option value="receber">Conta a receber</option></select></div>
+        <div class="field"><label>Descrição</label><input id="f-desc" placeholder="Ex.: Fornecedor de matéria-prima"></div>
+        <div class="row-fields">
+          <div class="field"><label>Valor (R$)</label><input id="f-amount" type="number" min="0" step="0.01" placeholder="0,00"></div>
+          <div class="field"><label>Vencimento</label><input id="f-due" type="date"></div>
+        </div>
+        <button class="btn primary" id="f-add">Lançar conta</button>
+      </div>
+      <div class="card">
+        <div class="ct">Fluxo de caixa do mês</div>
+        <div class="flowbox" id="fin-flow"></div>
+        <div style="margin-top:14px">
+          <div style="font-size:11px;font-weight:600;color:var(--faint);margin-bottom:8px">RECEBIMENTOS POR FORMA</div>
+          <div id="fin-methods"></div>
+        </div>
+      </div>
+      <div class="card full">
+        <div class="ct">Contas a pagar e a receber</div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>Descrição</th><th>Tipo</th><th>Vencimento</th><th class="num">Valor</th><th>Status</th><th>Ação</th></tr></thead>
+          <tbody id="fin-body"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEU NEGÓCIO -->
+  <section class="pane" id="negocio">
+    <div class="grid2">
+      <div class="card full">
+        <div class="ct">Vendas dos últimos 14 dias</div>
+        <div class="bars" id="biz-daily"></div>
+        <div class="bx" id="biz-daily-x"></div>
+      </div>
+      <div class="card">
+        <div class="ct">Produtos mais vendidos</div>
+        <div id="biz-rank"></div>
+      </div>
+      <div class="card">
+        <div class="ct">Recebimentos por forma de pagamento</div>
+        <div id="biz-methods"></div>
+      </div>
+      <div class="card full">
+        <div class="ct">Faturamento por mês</div>
+        <div class="bars" id="biz-monthly"></div>
+        <div class="bx" id="biz-monthly-x"></div>
+      </div>
     </div>
   </section>
 </main>
@@ -605,6 +757,246 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.pane').forEach(x=>x.classList.remove('active'));
   t.classList.add('active'); document.getElementById(t.dataset.p).classList.add('active');
 });
+</script>
+
+<script type="module">
+// ─────────────────────────────────────────────────────────────────────────
+// Módulos de gestão (inspirados no Bling): Vendas/PDV, Produtos & Estoque,
+// Financeiro e Meu Negócio. Lógica real e operante; persistência local
+// (localStorage) para funcionar offline, no mesmo espírito da demo do app.
+// ─────────────────────────────────────────────────────────────────────────
+const fmt = (v)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+const $ = (id)=>document.getElementById(id);
+const uid = ()=>Math.random().toString(36).slice(2,9);
+const iso = (d)=>d.toISOString().slice(0,10);
+const addDays = (n)=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d);};
+const brDate = (s)=>s? s.split('-').reverse().join('/') : '—';
+const KEY = 'copiloto_erp_v1';
+
+// ── Dados-semente (empresa-demo: Marina Artesanato) ──
+function seed(){
+  const products=[
+    {id:'p1',name:'Vela aromática lavanda',sku:'VLA-01',cat:'Velas',cost:8,price:25,stock:42,min:10},
+    {id:'p2',name:'Sabonete artesanal',sku:'SAB-02',cat:'Banho',cost:4,price:15,stock:8,min:12},
+    {id:'p3',name:'Kit presente luxo',sku:'KIT-03',cat:'Kits',cost:35,price:89,stock:15,min:5},
+    {id:'p4',name:'Macramê de parede',sku:'MAC-04',cat:'Decoração',cost:20,price:65,stock:3,min:4},
+    {id:'p5',name:'Caderno artesanal',sku:'CAD-05',cat:'Papelaria',cost:10,price:32,stock:27,min:8},
+    {id:'p6',name:'Difusor de ambiente',sku:'DIF-06',cat:'Aromas',cost:14,price:39,stock:0,min:6},
+  ];
+  const methods=['Pix','Dinheiro','Cartão','prazo'];
+  const sales=[]; const now=new Date();
+  for(let d=59; d>=0; d--){
+    const day=new Date(now); day.setDate(now.getDate()-d);
+    const n=Math.floor(Math.random()*4); // 0..3 vendas/dia
+    for(let k=0;k<n;k++){
+      const p=products[Math.floor(Math.random()*products.length)];
+      const qty=1+Math.floor(Math.random()*3);
+      const method=methods[Math.floor(Math.random()*methods.length)];
+      sales.push({id:uid(),date:iso(day),items:[{productId:p.id,name:p.name,qty,unitPrice:p.price}],
+        customer:'',method,total:qty*p.price});
+    }
+  }
+  const payables=[
+    {id:uid(),type:'pagar',desc:'Fornecedor de matéria-prima',amount:340,dueDate:addDays(5),status:'open'},
+    {id:uid(),type:'pagar',desc:'Aluguel do ateliê',amount:800,dueDate:addDays(9),status:'open'},
+    {id:uid(),type:'receber',desc:'Encomenda corporativa (PJ)',amount:1200,dueDate:addDays(12),status:'open'},
+  ];
+  return {products,sales,payables,settled:[]};
+}
+let DB = load();
+function load(){ try{const r=localStorage.getItem(KEY); if(r) return JSON.parse(r);}catch{} const s=seed(); persist(s); return s; }
+function persist(d){ DB=d||DB; localStorage.setItem(KEY,JSON.stringify(DB)); }
+
+const thisMonth = ()=>iso(new Date()).slice(0,7);
+const prod = (id)=>DB.products.find(p=>p.id===id);
+
+// ════════════════ PRODUTOS & ESTOQUE ════════════════
+function stockState(p){ if(p.stock<=0) return 'zero'; if(p.stock<=p.min) return 'low'; return 'ok'; }
+function renderProducts(){
+  const total=DB.products.length;
+  const valor=DB.products.reduce((a,p)=>a+p.cost*p.stock,0);
+  const alerta=DB.products.filter(p=>stockState(p)!=='ok').length;
+  $('prod-kpis').innerHTML=[
+    {l:'Produtos cadastrados',v:String(total),s:'SKUs ativos'},
+    {l:'Valor em estoque (custo)',v:fmt(valor),s:'capital parado'},
+    {l:'Itens em alerta',v:String(alerta),s:'estoque baixo ou zerado',chip:alerta?['bad',alerta+' p/ repor']:['good','tudo ok']},
+  ].map(k=>`<div class="kc"><div class="kl">${k.l}</div><div class="kv mono">${k.v}</div><div class="ks">${k.s}</div>${k.chip?`<span class="chip ${k.chip[0]}">${k.chip[1]}</span>`:''}</div>`).join('');
+  const lbl={ok:'em dia',low:'estoque baixo',zero:'zerado'};
+  $('prod-body').innerHTML = DB.products.map(p=>{
+    const st=stockState(p); const margem=p.price>0?Math.round((p.price-p.cost)/p.price*100):0;
+    return `<tr>
+      <td><div style="font-weight:600">${p.name}</div><div style="font-size:10px;color:var(--faint)">${p.sku} · ${p.cat}</div></td>
+      <td class="num mono">${p.stock}<div style="font-size:9px;color:var(--faint)">mín ${p.min}</div></td>
+      <td class="num mono">${fmt(p.price)}</td>
+      <td class="num mono">${margem}%</td>
+      <td><span class="stk ${st}">${lbl[st]}</span></td>
+      <td><div class="tline">
+        <button class="ibtn" data-mv="in" data-id="${p.id}">+ Entrada</button>
+        <button class="ibtn" data-mv="out" data-id="${p.id}">− Saída</button>
+        <button class="ibtn danger" data-del="${p.id}">🗑</button>
+      </div></td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty">Nenhum produto cadastrado.</td></tr>';
+  $('prod-body').querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{
+    const p=prod(b.dataset.id); const n=parseInt(prompt(b.dataset.mv==='in'?'Quantas unidades ENTRARAM no estoque?':'Quantas unidades SAÍRAM do estoque?','1'),10);
+    if(!Number.isFinite(n)||n<=0) return;
+    p.stock = b.dataset.mv==='in' ? p.stock+n : Math.max(0,p.stock-n);
+    persist(); renderProducts();
+  });
+  $('prod-body').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    if(!confirm('Excluir este produto?')) return;
+    DB.products=DB.products.filter(p=>p.id!==b.dataset.del); persist(); renderAll();
+  });
+}
+$('p-add').onclick=()=>{
+  const name=$('p-name').value.trim(); if(!name){alert('Informe o nome do produto.');return;}
+  DB.products.push({id:uid(),name,sku:$('p-sku').value.trim()||('SKU-'+(DB.products.length+1)),
+    cat:$('p-cat').value.trim()||'Geral',cost:+$('p-cost').value||0,price:+$('p-price').value||0,
+    stock:+$('p-stock').value||0,min:+$('p-min').value||0});
+  persist(); ['p-name','p-sku','p-cat','p-cost','p-price'].forEach(i=>$(i).value=''); $('p-stock').value=0; $('p-min').value=5;
+  renderAll(); alert('Produto adicionado ✓');
+};
+
+// ════════════════ VENDAS (PDV) ════════════════
+let cart=[];
+function inCart(id){ return cart.filter(c=>c.productId===id).reduce((a,c)=>a+c.qty,0); }
+function renderCart(){
+  const box=$('cart-box');
+  if(!cart.length){ box.innerHTML='<div class="cart-empty">Nenhum item adicionado ainda.</div>'; return; }
+  const total=cart.reduce((a,c)=>a+c.qty*c.unitPrice,0);
+  box.innerHTML = cart.map((c,i)=>`<div class="cart-item">
+      <div>${c.qty}× ${c.name}<div style="font-size:10px;color:var(--faint)">${fmt(c.unitPrice)} cada</div></div>
+      <div class="tline"><span class="mono">${fmt(c.qty*c.unitPrice)}</span>
+      <button class="ibtn danger" data-rm="${i}">×</button></div></div>`).join('')
+    + `<div class="cart-total"><span>Total</span><span class="mono">${fmt(total)}</span></div>`;
+  box.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ cart.splice(+b.dataset.rm,1); renderCart(); });
+}
+function renderSales(){
+  // select de produtos
+  $('s-prod').innerHTML = DB.products.map(p=>`<option value="${p.id}">${p.name} — ${fmt(p.price)} (estoque ${p.stock})</option>`).join('');
+  renderCart();
+  // KPIs do mês
+  const mes=DB.sales.filter(s=>s.date.startsWith(thisMonth()));
+  const fat=mes.reduce((a,s)=>a+s.total,0);
+  const ticket=mes.length?fat/mes.length:0;
+  $('sales-kpis').innerHTML=[
+    {l:'Vendas no mês',v:String(mes.length),s:'pedidos realizados'},
+    {l:'Faturamento no mês',v:fmt(fat),s:'soma das vendas',chip:['good','+ vendas']},
+    {l:'Ticket médio',v:fmt(ticket),s:'por venda'},
+  ].map(k=>`<div class="kc"><div class="kl">${k.l}</div><div class="kv mono">${k.v}</div><div class="ks">${k.s}</div>${k.chip?`<span class="chip ${k.chip[0]}">${k.chip[1]}</span>`:''}</div>`).join('');
+  // vendas recentes
+  const lbl=(m)=>m==='prazo'?'A prazo':m;
+  $('sales-body').innerHTML = [...DB.sales].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12).map(s=>`
+    <tr><td class="mono">${brDate(s.date)}</td>
+    <td>${s.items.reduce((a,i)=>a+i.qty,0)} item(ns)<div style="font-size:10px;color:var(--faint)">${s.items.map(i=>i.name).join(', ').slice(0,40)}</div></td>
+    <td>${s.customer||'—'}</td><td>${lbl(s.method)}</td><td class="num mono">${fmt(s.total)}</td></tr>`).join('')
+    || '<tr><td colspan="5" class="empty">Nenhuma venda ainda.</td></tr>';
+}
+$('s-add-item').onclick=()=>{
+  const id=$('s-prod').value, p=prod(id); if(!p){alert('Cadastre um produto primeiro.');return;}
+  const qty=parseInt($('s-qty').value,10)||1;
+  if(p.stock - inCart(id) < qty){ alert(`Estoque insuficiente. Disponível: ${p.stock-inCart(id)}.`); return; }
+  cart.push({productId:id,name:p.name,qty,unitPrice:p.price}); renderCart();
+};
+$('s-finish').onclick=()=>{
+  if(!cart.length){alert('Adicione ao menos um item.');return;}
+  cart.forEach(c=>{ const p=prod(c.productId); if(p) p.stock=Math.max(0,p.stock-c.qty); });
+  const total=cart.reduce((a,c)=>a+c.qty*c.unitPrice,0);
+  const method=$('s-method').value, customer=$('s-customer').value.trim();
+  const sale={id:uid(),date:iso(new Date()),items:cart.map(c=>({productId:c.productId,name:c.name,qty:c.qty,unitPrice:c.unitPrice})),customer,method,total};
+  DB.sales.push(sale);
+  if(method==='prazo'){ DB.payables.push({id:uid(),type:'receber',desc:`Venda a prazo${customer?' — '+customer:''}`,amount:total,dueDate:addDays(30),status:'open',saleId:sale.id}); }
+  persist(); cart=[]; $('s-customer').value=''; $('s-qty').value=1;
+  renderAll(); alert(`Venda de ${fmt(total)} registrada ✓ (estoque atualizado)`);
+};
+
+// ════════════════ FINANCEIRO ════════════════
+function financeRows(){ return [...DB.payables].sort((a,b)=>a.dueDate.localeCompare(b.dueDate)); }
+function renderFinance(){
+  const rows=financeRows();
+  const aReceber=rows.filter(r=>r.type==='receber'&&r.status==='open').reduce((a,r)=>a+r.amount,0);
+  const aPagar=rows.filter(r=>r.type==='pagar'&&r.status==='open').reduce((a,r)=>a+r.amount,0);
+  // entradas realizadas no mês: vendas pagas à vista + recebíveis quitados
+  const mes=thisMonth();
+  const entradasVendas=DB.sales.filter(s=>s.date.startsWith(mes)&&s.method!=='prazo').reduce((a,s)=>a+s.total,0);
+  const entradasReceb=rows.filter(r=>r.type==='receber'&&r.status==='paid').reduce((a,r)=>a+r.amount,0);
+  const saidas=rows.filter(r=>r.type==='pagar'&&r.status==='paid').reduce((a,r)=>a+r.amount,0);
+  const entradas=entradasVendas+entradasReceb; const saldo=entradas-saidas;
+  $('fin-kpis').innerHTML=[
+    {l:'A receber (em aberto)',v:fmt(aReceber),s:'vendas a prazo + lançamentos',chip:['good','entra']},
+    {l:'A pagar (em aberto)',v:fmt(aPagar),s:'contas pendentes',chip:['bad','sai']},
+    {l:'Saldo do mês',v:fmt(saldo),s:'entradas − saídas realizadas',chip:[saldo>=0?'good':'bad',saldo>=0?'positivo':'negativo']},
+  ].map(k=>`<div class="kc"><div class="kl">${k.l}</div><div class="kv mono">${k.v}</div><div class="ks">${k.s}</div>${k.chip?`<span class="chip ${k.chip[0]}">${k.chip[1]}</span>`:''}</div>`).join('');
+  // fluxo de caixa
+  $('fin-flow').innerHTML=`
+    <div class="flowrow pos"><span>Entradas realizadas (mês)</span><b>${fmt(entradas)}</b></div>
+    <div class="flowrow neg"><span>Saídas realizadas (mês)</span><b>${fmt(saidas)}</b></div>
+    <div class="flowrow tot"><span><strong>Saldo</strong></span><b>${fmt(saldo)}</b></div>`;
+  // recebimentos por forma (mês)
+  const byM={}; DB.sales.filter(s=>s.date.startsWith(mes)).forEach(s=>{const m=s.method==='prazo'?'A prazo':s.method; byM[m]=(byM[m]||0)+s.total;});
+  const maxM=Math.max(1,...Object.values(byM));
+  $('fin-methods').innerHTML=Object.keys(byM).length?Object.entries(byM).sort((a,b)=>b[1]-a[1]).map(([m,v])=>`
+    <div class="hbar-row"><div class="lab"><span>${m}</span><b>${fmt(v)}</b></div><div class="hbar"><div style="width:${v/maxM*100}%"></div></div></div>`).join('')
+    :'<div class="empty">Sem recebimentos no mês.</div>';
+  // tabela
+  const slbl={open:'em aberto',paid:'quitado'};
+  $('fin-body').innerHTML=rows.map(r=>`
+    <tr><td>${r.desc}</td>
+    <td><span class="pill ${r.type==='receber'?'paid':'overdue'}">${r.type==='receber'?'a receber':'a pagar'}</span></td>
+    <td class="mono">${brDate(r.dueDate)}</td><td class="num mono">${fmt(r.amount)}</td>
+    <td><span class="pill ${r.status==='paid'?'paid':'pending'}">${slbl[r.status]}</span></td>
+    <td><div class="tline">${r.status==='open'?`<button class="ibtn" data-pay="${r.id}">${r.type==='receber'?'Marcar recebido':'Marcar pago'}</button>`:''}
+      <button class="ibtn danger" data-fdel="${r.id}">🗑</button></div></td></tr>`).join('')
+    || '<tr><td colspan="6" class="empty">Nenhuma conta lançada.</td></tr>';
+  $('fin-body').querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{
+    const r=DB.payables.find(x=>x.id===b.dataset.pay); if(r){r.status='paid'; persist(); renderFinance();}
+  });
+  $('fin-body').querySelectorAll('[data-fdel]').forEach(b=>b.onclick=()=>{
+    DB.payables=DB.payables.filter(x=>x.id!==b.dataset.fdel); persist(); renderFinance();
+  });
+}
+$('f-add').onclick=()=>{
+  const desc=$('f-desc').value.trim(), amount=+$('f-amount').value, due=$('f-due').value||addDays(7);
+  if(!desc||!(amount>0)){alert('Preencha descrição e valor.');return;}
+  DB.payables.push({id:uid(),type:$('f-type').value,desc,amount,dueDate:due,status:'open'});
+  persist(); $('f-desc').value=''; $('f-amount').value=''; $('f-due').value='';
+  renderFinance(); alert('Conta lançada ✓');
+};
+
+// ════════════════ MEU NEGÓCIO (gráficos) ════════════════
+function renderBiz(){
+  // vendas por dia (14 dias)
+  const days=[]; for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(iso(d));}
+  const dvals=days.map(d=>DB.sales.filter(s=>s.date===d).reduce((a,s)=>a+s.total,0));
+  const dmax=Math.max(1,...dvals);
+  $('biz-daily').innerHTML=dvals.map(v=>`<div class="b" data-v="${fmt(v)}" style="height:${v/dmax*100}%"></div>`).join('');
+  $('biz-daily-x').innerHTML=days.map((d,i)=>i%2===0?`<span>${d.slice(8)}/${d.slice(5,7)}</span>`:'<span></span>').join('');
+  // produtos mais vendidos
+  const qmap={}; DB.sales.forEach(s=>s.items.forEach(it=>{qmap[it.productId]=(qmap[it.productId]||0)+it.qty;}));
+  const rank=Object.entries(qmap).map(([id,q])=>({name:(prod(id)?.name)||'—',q})).sort((a,b)=>b.q-a.q).slice(0,6);
+  const rmax=Math.max(1,...rank.map(r=>r.q));
+  $('biz-rank').innerHTML=rank.length?rank.map(r=>`
+    <div class="hbar-row"><div class="lab"><span>${r.name}</span><b>${r.q} un</b></div>
+    <div class="hbar"><div style="width:${r.q/rmax*100}%"></div></div></div>`).join('')
+    :'<div class="empty">Sem vendas.</div>';
+  // por forma de pagamento (geral)
+  const mmap={}; DB.sales.forEach(s=>{const m=s.method==='prazo'?'A prazo':s.method; mmap[m]=(mmap[m]||0)+s.total;});
+  const mmax=Math.max(1,...Object.values(mmap));
+  $('biz-methods').innerHTML=Object.entries(mmap).sort((a,b)=>b[1]-a[1]).map(([m,v])=>`
+    <div class="hbar-row"><div class="lab"><span>${m}</span><b>${fmt(v)}</b></div>
+    <div class="hbar"><div style="width:${v/mmax*100}%"></div></div></div>`).join('')||'<div class="empty">Sem dados.</div>';
+  // faturamento por mês (6 meses)
+  const months=[]; for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push(iso(d).slice(0,7));}
+  const mvals=months.map(m=>DB.sales.filter(s=>s.date.startsWith(m)).reduce((a,s)=>a+s.total,0));
+  const fmax=Math.max(1,...mvals);
+  const mname=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  $('biz-monthly').innerHTML=mvals.map(v=>`<div class="b" data-v="${fmt(v)}" style="height:${v/fmax*100}%"></div>`).join('');
+  $('biz-monthly-x').innerHTML=months.map(m=>`<span>${mname[+m.slice(5,7)-1]}</span>`).join('');
+}
+
+// ── Render geral + atualização ao trocar de aba (mantém dados frescos) ──
+function renderAll(){ renderProducts(); renderSales(); renderFinance(); renderBiz(); }
+renderAll();
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',renderAll));
 </script>
 </body>
 </html>
