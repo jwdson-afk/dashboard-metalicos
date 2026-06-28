@@ -18,7 +18,7 @@
 
 4. **Estratégia de primeira venda rápida:** usar **pacotes fracionados pequenos como isca de reputação** (perda de ~R$ 3–4 por venda em vez de ~R$ 60), enquanto se prepara a oferta lucrativa (caixa cheia com fornecedor melhor / kits acima de R$ 79).
 
-5. **Atenção regulatória (não pule):** seringa é **produto para saúde / correlato** sujeito a regras da Anvisa no ML. Tem que ser produto **regularizado** (marca já notificada: Medix, Descarpack, BD, SR, Solidor etc.), com **nota fiscal**, e o ideal é vender com **CNPJ (MEI serve para começar)**. Anúncio fora das normas é removido e a conta pode ser penalizada.
+5. **Atenção regulatória (não pule):** seringa é **produto para saúde / correlato** sujeito a regras da Anvisa no ML. Tem que ser produto **regularizado** (marca já notificada: Medix, Descarpack, BD, SR, Solidor etc.), com **nota fiscal** e **CNPJ (MEI já serve) desde o início** — começar como PF "nasce travado" (sem Full, sem Mercado Líder). Anúncio fora das normas é removido e a conta pode ser penalizada.
 
 ---
 
@@ -129,7 +129,10 @@ Texto com palavras-chave naturais (insulina, diabético, 1ml, 100UI, descartáve
 ### 4.5 Categoria correta
 Saúde › materiais/insumos. Categoria errada = sumir da busca.
 
-### 4.6 Ferramentas de palavra-chave
+### 4.6 Mercado Livre Clips (vídeo curto) — alavanca subutilizada
+Suba um **Clip** (vídeo curto) no anúncio mostrando a caixa, a agulha e a contagem das 100un. Aumenta o tempo de permanência e o CTR, e a maioria dos concorrentes ainda não usa → vantagem barata de ranqueamento e conversão.
+
+### 4.7 Ferramentas de palavra-chave
 Use a própria busca do ML (autocomplete + "anúncios mais relevantes" dos concorrentes), e apoio externo (Nubimetrics/Real Trends para ML; Ubersuggest/Answer the Public como complemento).
 
 ---
@@ -138,7 +141,7 @@ Use a própria busca do ML (autocomplete + "anúncios mais relevantes" dos conco
 
 ### FASE 0 — Pré-requisitos (Dias 1–3) — *destrava tudo*
 - [ ] **Resolver fornecedor:** cotar com 3+ distribuidores de material hospitalar para baixar caixa de R$ 100 → **R$ 40–55**. (Sem isso o negócio não fecha.)
-- [ ] **Regularização:** confirmar **CNPJ/MEI** (ou usar PF para testar, ciente do limite) e ter **nota fiscal** do produto.
+- [ ] **Regularização (CNPJ/MEI desde o dia 1 — NÃO comece como PF):** abrir/usar **CNPJ (MEI já serve)** e ter **nota fiscal** do produto. Começar como PF = "nascer travado" — sem nota fiscal profissional, **sem acesso ao Full**, sem caminho para Mercado Líder e com bloqueios quando o volume sobe. CNPJ também dá Simples Nacional (tributação melhor no varejo).
 - [ ] **Anvisa:** garantir que a marca da seringa é **notificada/registrada** e guardar o nº de registro para a ficha técnica.
 - [ ] Abrir/validar conta de vendedor + **Mercado Pago** + dados bancários.
 
@@ -190,6 +193,34 @@ Use a própria busca do ML (autocomplete + "anúncios mais relevantes" dos conco
 6. [ ] Responder perguntas em < 1h e despachar no mesmo dia.
 
 > **Mensagem-chave:** a estratégia "reputação primeiro + SEO" da videoaula está certa — eu só ajustei *como* sacrificar margem: **perca pouco em pacotes fracionados isca, não muito na caixa cheia**, e **resolva o custo de R$ 100** em paralelo, senão a reputação vem mas o negócio nunca fica lucrativo.
+
+---
+
+## 8. Complemento — Plano de Negócio (NotebookLM/playlist): o que confirma e o que muda
+
+O plano gerado a partir da playlist reforça este documento. Pontos integrados:
+
+### 8.1 Confirmações (sem mudança)
+- **Armadilha do "R$ 19+ / Born Bankrupt":** item barato com frete grátis obrigatório pode lucrar *menos* que se vendido mais barato sem frete grátis. → É exatamente a razão de, nas iscas, usarmos **comprador paga frete** e de buscarmos **kit > R$ 79**.
+- **Kits diluem a taxa fixa** e sobem o ticket médio → meu Cenário D.
+- **Primeiras ~10 vendas = incubação, não lucro** → minha Fase 3.
+- **SEO técnico + ficha 100% + fotos profissionais** → minha Seção 4.
+- **Ads é acelerador, não conserta anúncio ruim** → otimize antes de impulsionar.
+
+### 8.2 Mudanças que incorporei ao plano
+1. **CNPJ/MEI desde o dia 1 (não comece como PF).** É o "destravador" de nota fiscal, **Full** e Mercado Líder. Atualizado na Fase 0.
+2. **Full como estratégia de ranqueamento, não só logística.** O selo Full é gatilho psicológico (velocidade/segurança) e o algoritmo prioriza Full. Meta: migrar para Full assim que houver giro diário consistente + reputação verde + CNPJ.
+3. **Mercado Livre Clips** adicionado ao SEO (Seção 4.6).
+4. **Modelo com estoque próprio (evitar dropshipping):** prazos e controle de cancelamento/ruptura dependem de ter o produto em mãos.
+
+### 8.3 Alerta importante de seleção de produto
+O plano recomenda **evitar categorias saturadas** onde Mercado Líderes têm vantagem de preço imbatível. **Seringa de insulina é justamente uma categoria assim** (commodity, marcas fortes, briga por preço). Isso **não invalida** o piloto, mas torna inegociáveis as duas defesas:
+- **Custo de compra baixo** (R$ 40–55/caixa) — sem isso você compete numa guerra de preço que não tem como vencer pagando R$ 100.
+- **Diferenciação de valor** (kits, fracionamento premium, fotos/Clip, atendimento e prazo Full) em vez de só "ser o mais barato".
+
+### 8.4 Erros a evitar (checklist de saúde da conta)
+**Estratégicos:** nascer sem cálculo de custo real (armadilha do frete); dropshipping; ficar PF tempo demais; categoria errada; tratar como hobby.
+**Operacionais:** postar fora de 24h; foto ruim/poluída; demorar a responder (use templates); vender sem estoque (ruptura); descrição imprecisa (gera devolução); cancelar pedido (métrica "cancelado pelo vendedor"); embalagem amadora.
 
 ---
 
